@@ -1,0 +1,115 @@
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  padding: 20px;
+  background:
+    radial-gradient(circle at 78% 36%, rgba(255, 244, 196, 0.95) 0, rgba(255, 214, 120, 0.55) 13%, rgba(255, 190, 100, 0) 42%),
+    linear-gradient(180deg, #6c88a0 0%, #a9bccb 30%, #f3dfb0 58%, #f7c978 78%, #e9b46a 100%);
+  background-position: 78% 36%, 0 0;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  animation: sunBreath 9s ease-in-out infinite alternate;
+}
+
+/* Mountains */
+:host::before {
+  content: '';
+  position: fixed;
+  left: -4%;
+  right: -4%;
+  bottom: 0;
+  height: 62vh;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 400' preserveAspectRatio='none'><path d='M0 345 Q300 270 640 335 T1280 320 T1600 340 L1600 400 L0 400 Z' fill='%231f4d3f' fill-opacity='0.95'/></svg>") bottom / 100% 30% no-repeat,
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 400' preserveAspectRatio='none'><path d='M0 300 Q250 205 520 285 T1040 255 T1600 290 L1600 400 L0 400 Z' fill='%234d7a73' fill-opacity='0.8'/></svg>") bottom / 100% 52% no-repeat,
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 400' preserveAspectRatio='none'><path d='M0 250 Q200 150 400 230 T800 200 T1200 240 T1600 180 L1600 400 L0 400 Z' fill='%237f9bb0' fill-opacity='0.6'/></svg>") bottom / 100% 78% no-repeat;
+  animation: sway 32s ease-in-out infinite alternate;
+}
+
+/* Drifting mist + golden specks */
+:host::after {
+  content: '';
+  position: fixed;
+  left: 0;
+  bottom: 6vh;
+  width: 200%;
+  height: 46vh;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle 4px at 12% 52%, rgba(255, 240, 190, 0.95), transparent 100%),
+    radial-gradient(circle 3px at 27% 30%, rgba(255, 233, 160, 0.9), transparent 100%),
+    radial-gradient(circle 4px at 41% 62%, rgba(255, 240, 190, 0.95), transparent 100%),
+    radial-gradient(circle 3px at 56% 22%, rgba(255, 226, 150, 0.9), transparent 100%),
+    radial-gradient(circle 4px at 71% 48%, rgba(255, 240, 190, 0.95), transparent 100%),
+    radial-gradient(circle 3px at 88% 34%, rgba(255, 233, 160, 0.9), transparent 100%),
+    radial-gradient(ellipse 30% 32% at 22% 65%, rgba(255, 246, 228, 0.6), transparent 72%),
+    radial-gradient(ellipse 32% 28% at 58% 48%, rgba(255, 255, 255, 0.5), transparent 72%),
+    radial-gradient(ellipse 22% 24% at 86% 76%, rgba(255, 236, 205, 0.55), transparent 72%);
+  background-size: 50% 100%;
+  background-repeat: repeat-x;
+  animation: drift 60s linear infinite;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 38px 34px 34px;
+  border-radius: 24px;
+  background: rgba(255, 251, 242, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-top: 5px solid var(--gold);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 30px 70px rgba(15, 40, 33, 0.38);
+}
+.login-box > * { animation: fadeUp 0.6s ease backwards; }
+.login-box > :nth-child(1) { animation-delay: 0.10s; }
+.login-box > :nth-child(2) { animation-delay: 0.18s; }
+.login-box > :nth-child(3) { animation-delay: 0.26s; }
+.login-box > :nth-child(4) { animation-delay: 0.34s; }
+.login-box > :nth-child(5) { animation-delay: 0.42s; }
+.login-box > :nth-child(6) { animation-delay: 0.50s; }
+
+h2 {
+  margin: 0;
+  text-align: center;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--forest);
+}
+h2::before {
+  content: 'ER';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  border: 3px solid var(--gold);
+  font-family: 'Inter', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: radial-gradient(circle at 30% 30%, #4fb27a, #1f4d3f);
+  animation: floatLogo 4s ease-in-out infinite, ringPulse 3s ease-out infinite;
+}
+
+.sub { text-align: center; color: var(--muted); margin: 0 0 6px; font-size: 14px; }
+button { padding: 13px; margin-top: 4px; }
+.link { text-align: center; margin: 0; font-size: 14px; color: var(--muted); }
+a { color: var(--forest-2); font-weight: 600; text-decoration: none; }
+a:hover { color: var(--gold-dark); text-decoration: underline; }

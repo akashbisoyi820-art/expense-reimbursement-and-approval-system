@@ -1,0 +1,278 @@
+:host {
+  display: block;
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 88% 10%, rgba(255, 246, 200, 0.95) 0, rgba(255, 226, 140, 0.6) 7%, rgba(255, 226, 140, 0) 30%),
+    linear-gradient(180deg, #4fa3e0 0%, #8ccbf0 40%, #d7f0fb 68%, #fdf3d7 100%);
+  background-position: 88% 10%, 0 0;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  animation: sunBreath 9s ease-in-out infinite alternate;
+}
+
+/* Rolling green hills */
+:host::before {
+  content: '';
+  position: fixed;
+  left: -4%;
+  right: -4%;
+  bottom: 0;
+  height: 40vh;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 400' preserveAspectRatio='none'><path d='M0 300 Q300 220 650 280 T1300 260 T1600 285 L1600 400 L0 400 Z' fill='%233f9a5b'/></svg>") bottom / 100% 55% no-repeat,
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 400' preserveAspectRatio='none'><path d='M0 260 Q250 170 560 240 T1100 215 T1600 245 L1600 400 L0 400 Z' fill='%237cc47f'/></svg>") bottom / 100% 90% no-repeat;
+  animation: sway 40s ease-in-out infinite alternate;
+}
+
+/* Drifting clouds */
+:host::after {
+  content: '';
+  position: fixed;
+  left: 0;
+  top: 4vh;
+  width: 200%;
+  height: 42vh;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 14% 9% at 15% 30%, rgba(255, 255, 255, 0.95), transparent 72%),
+    radial-gradient(ellipse 9% 6% at 22% 36%, rgba(255, 255, 255, 0.9), transparent 72%),
+    radial-gradient(ellipse 16% 10% at 55% 55%, rgba(255, 255, 255, 0.9), transparent 72%),
+    radial-gradient(ellipse 10% 7% at 63% 60%, rgba(255, 255, 255, 0.85), transparent 72%),
+    radial-gradient(ellipse 13% 8% at 86% 25%, rgba(255, 255, 255, 0.9), transparent 72%);
+  background-size: 50% 100%;
+  background-repeat: repeat-x;
+  animation: drift 90s linear infinite;
+}
+/* ================= Summary cards ================= */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.stat {
+  position: relative;
+  overflow: hidden;
+  padding: 20px 18px 16px;
+  border-radius: 18px;
+  background: rgba(255, 251, 242, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 14px 32px rgba(20, 50, 45, 0.2);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: fadeUp 0.6s ease backwards;
+}
+.stat::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: var(--accent, var(--forest-2));
+}
+.stat:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 22px 40px rgba(20, 50, 45, 0.28);
+}
+.stat.active {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.stat[data-status='TOTAL'] { --accent: #2f6f55; }
+.stat[data-status='PENDING'] { --accent: #f2a93b; }
+.stat[data-status='APPROVED'] { --accent: #3a8f5f; }
+.stat[data-status='REJECTED'] { --accent: #e0593f; }
+.stat[data-status='REIMBURSED'] { --accent: #2b8fb5; }
+
+.stat:nth-child(1) { animation-delay: 0.10s; }
+.stat:nth-child(2) { animation-delay: 0.18s; }
+.stat:nth-child(3) { animation-delay: 0.26s; }
+.stat:nth-child(4) { animation-delay: 0.34s; }
+.stat:nth-child(5) { animation-delay: 0.42s; }
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.stat-amount {
+  margin: 8px 0 4px;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 28px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--forest);
+}
+.stat-count { font-size: 13px; color: var(--muted); }
+
+/* ================= Extra animations ================= */
+
+/* 3D tilt that follows the mouse */
+.stat {
+  transform: perspective(700px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.15s ease-out, box-shadow 0.2s;
+}
+.stat:hover {
+  transform: perspective(700px) translateY(-4px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+}
+
+/* Glare sweep on hover */
+.stat::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transform: skewX(-20deg);
+  pointer-events: none;
+  opacity: 0;
+}
+.stat:hover::after { opacity: 1; animation: sweep 0.9s ease; }
+
+/* Round icon, different animation per status */
+.stat-icon {
+  position: absolute;
+  top: 16px;
+  right: 14px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+}
+.stat[data-status='TOTAL'] .stat-icon { animation: bob 3s ease-in-out infinite; }
+.stat[data-status='APPROVED'] .stat-icon { animation: pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s backwards; }
+.stat[data-status='REJECTED'] .stat-icon { animation: shake 0.6s ease 0.6s backwards; }
+.stat[data-status='REIMBURSED'] .stat-icon { animation: coin 4s ease-in-out 1s infinite; }
+
+.stat[data-status='PENDING'] .stat-icon::before {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+}
+.stat[data-status='PENDING'] .stat-icon::after {
+  content: '';
+  position: absolute;
+  left: calc(50% - 1px);
+  bottom: 50%;
+  width: 2px;
+  height: 13px;
+  border-radius: 2px;
+  background: #fff;
+  transform-origin: bottom center;
+  animation: spin 3s linear infinite;
+}
+
+/* Share bar */
+.stat-bar {
+  height: 6px;
+  margin-top: 12px;
+  border-radius: 99px;
+  background: rgba(31, 77, 63, 0.1);
+  overflow: hidden;
+}
+.stat-bar span {
+  display: block;
+  height: 100%;
+  width: var(--w, 0%);
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 0.9s ease;
+  animation: grow 1s cubic-bezier(0.22, 1, 0.36, 1) 0.3s backwards;
+}
+.stat-percent { margin-top: 6px; font-size: 12px; color: var(--muted); }
+
+/* Pending card glow */
+.stat.attention {
+  animation: fadeUp 0.6s ease 0.18s backwards, glowPulse 2.4s ease-out 1s infinite;
+}
+
+/* Loading skeleton */
+.skeleton {
+  height: 150px;
+  cursor: default;
+  background: linear-gradient(100deg, rgba(255, 251, 242, 0.5) 30%, rgba(255, 255, 255, 0.95) 50%, rgba(255, 251, 242, 0.5) 70%);
+  background-size: 300% 100%;
+  animation: skel 1.3s linear infinite;
+}
+.skeleton::before, .skeleton::after { display: none; }
+.skeleton:hover { transform: none; }
+
+/* Message feedback */
+.success { display: flex; align-items: center; gap: 10px; }
+.success::before {
+  content: '\2713';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--moss);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.error { animation: shake 0.45s ease both; }
+
+/* Keyframes */
+@keyframes sweep { to { left: 130%; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes pop {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(3px); }
+}
+@keyframes coin {
+  0%, 60% { transform: rotateY(0deg); }
+  80%, 100% { transform: rotateY(360deg); }
+}
+@keyframes grow { from { width: 0; } }
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 14px 32px rgba(20, 50, 45, 0.2), 0 0 0 0 rgba(242, 169, 59, 0.55); }
+  50% { box-shadow: 0 14px 32px rgba(20, 50, 45, 0.2), 0 0 0 12px rgba(242, 169, 59, 0); }
+}
+@keyframes skel {
+  from { background-position: 100% 0; }
+  to { background-position: 0 0; }
+}
+.stat-amount {
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: 'lnum' 1, 'tnum' 1;
+}

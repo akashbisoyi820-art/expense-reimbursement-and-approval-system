@@ -1,0 +1,148 @@
+<div class="page">
+  <div class="top">
+    <div>
+      <h2>Approvals</h2>
+      <p>Welcome {{ name }} ({{ role }})</p>
+    </div>
+    <button class="logout" (click)="logout()">Logout</button>
+  </div>
+
+  @if (loaded()) {
+  <div class="stats">
+    @for (s of stats(); track s.key) {
+    <div
+      class="stat"
+      [attr.data-kind]="s.key"
+      [class.attention]="s.attention"
+      (click)="go(s.target)"
+      (mousemove)="tilt($event)"
+      (mouseleave)="resetTilt($event)">
+      <div class="stat-icon">{{ s.icon }}</div>
+      <div class="stat-label">{{ s.label }}</div>
+      <div class="stat-amount">{{ s.money ? currency : '' }}{{ shown()[s.key] | number: '1.0-0' }}</div>
+      <div class="stat-count">{{ s.hint }}</div>
+      @if (s.percent !== null) {
+      <div class="stat-bar"><span [style.--w]="(s.percent ?? 0) + '%'"></span></div>
+      }
+    </div>
+    }
+  </div>
+  } @else {
+  <div class="stats">
+    @for (p of placeholders; track p) {
+    <div class="stat skeleton"></div>
+    }
+  </div>
+  }
+
+  @if (message()) { <p class="success">{{ message() }}</p> }
+  @if (error()) { <p class="error">{{ error() }}</p> }
+
+  <div class="card" id="pending-card">
+    <h3>Pending Expenses</h3>
+
+    @if (pending().length === 0) {
+    <p>No pending expenses.</p>
+    } @else {
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Employee</th>
+        <th>Category</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Description</th>
+        <th>Receipt</th>
+        <th>Action</th>
+      </tr>
+      </thead>
+      <tbody>
+      @for (e of pending(); track e.id) {
+      <tr>
+        <td>{{ e.id }}</td>
+        <td>{{ e.employeeName }}</td>
+        <td>{{ e.category }}</td>
+        <td>{{ e.amount }}</td>
+        <td>{{ e.expenseDate }}</td>
+        <td>{{ e.description }}</td>
+        <td>
+          @if (e.hasReceipt) {
+          <button class="link-btn" (click)="viewReceipt(e.id)">View</button>
+          } @else {
+          <span class="muted">No receipt</span>
+          }
+        </td>
+        <td class="actions">
+          <button class="approve" (click)="approve(e.id)">Approve</button>
+          <button class="reject" (click)="startReject(e.id)">Reject</button>
+        </td>
+      </tr>
+      }
+      </tbody>
+    </table>
+    }
+
+    @if (rejectingId() !== null) {
+    <div class="reject-box">
+      <h4>Reject expense #{{ rejectingId() }}</h4>
+      <textarea
+        rows="3"
+        maxlength="500"
+        placeholder="Reason for rejection (required)"
+        [(ngModel)]="rejectReason"></textarea>
+      <div class="actions">
+        <button class="reject" (click)="confirmReject()">Confirm Reject</button>
+        <button class="cancel" (click)="cancelReject()">Cancel</button>
+      </div>
+    </div>
+    }
+  </div>
+
+  @if (isAdmin) {
+  <div class="card" id="approved-card">
+    <h3>Approved Expenses (Ready to Reimburse)</h3>
+
+    @if (approved().length === 0) {
+    <p>No approved expenses.</p>
+    } @else {
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Employee</th>
+        <th>Category</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Description</th>
+        <th>Receipt</th>
+        <th>Action</th>
+      </tr>
+      </thead>
+      <tbody>
+      @for (e of approved(); track e.id) {
+      <tr>
+        <td>{{ e.id }}</td>
+        <td>{{ e.employeeName }}</td>
+        <td>{{ e.category }}</td>
+        <td>{{ e.amount }}</td>
+        <td>{{ e.expenseDate }}</td>
+        <td>{{ e.description }}</td>
+        <td>
+          @if (e.hasReceipt) {
+          <button class="link-btn" (click)="viewReceipt(e.id)">View</button>
+          } @else {
+          <span class="muted">No receipt</span>
+          }
+        </td>
+        <td class="actions">
+          <button class="reimburse" (click)="reimburse(e.id)">Reimburse</button>
+        </td>
+      </tr>
+      }
+      </tbody>
+    </table>
+    }
+  </div>
+  }
+</div>

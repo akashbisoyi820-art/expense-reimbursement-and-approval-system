@@ -1,0 +1,18 @@
+<div class="register-box">
+  <h2>Expense Reimbursement System</h2>
+  <p class="sub">Create your employee account</p>
+
+  <input type="text" placeholder="Full name" [(ngModel)]="name" />
+  <input type="email" placeholder="Email" [(ngModel)]="email" />
+  <input type="password" placeholder="Password (min 6 characters)" [(ngModel)]="password" />
+  <input type="password" placeholder="Confirm password" [(ngModel)]="confirmPassword" />
+
+  <button (click)="onRegister()" [disabled]="loading()">
+    {{ loading() ? 'Please wait...' : 'Register' }}
+  </button>
+
+  @if (error()) { <p class="error">{{ error() }}</p> }
+  @if (success()) { <p class="success">{{ success() }}</p> }
+
+  <p class="link">Already have an account? <a routerLink="/login">Login</a></p>
+</div>
