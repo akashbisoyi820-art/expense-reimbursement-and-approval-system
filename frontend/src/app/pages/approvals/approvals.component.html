@@ -54,6 +54,7 @@
         <th>Date</th>
         <th>Description</th>
         <th>Receipt</th>
+        <th>Details</th>
         <th>Action</th>
       </tr>
       </thead>
@@ -72,6 +73,9 @@
           } @else {
           <span class="muted">No receipt</span>
           }
+        </td>
+        <td>
+          <button class="link-btn" (click)="openDetails(e.id)">Details</button>
         </td>
         <td class="actions">
           <button class="approve" (click)="approve(e.id)">Approve</button>
@@ -116,6 +120,7 @@
         <th>Date</th>
         <th>Description</th>
         <th>Receipt</th>
+        <th>Details</th>
         <th>Action</th>
       </tr>
       </thead>
@@ -135,6 +140,9 @@
           <span class="muted">No receipt</span>
           }
         </td>
+        <td>
+          <button class="link-btn" (click)="openDetails(e.id)">Details</button>
+        </td>
         <td class="actions">
           <button class="reimburse" (click)="reimburse(e.id)">Reimburse</button>
         </td>
@@ -144,5 +152,35 @@
     </table>
     }
   </div>
+
+  <div class="card" id="activity-card">
+    <h3>Recent Activity</h3>
+
+    @if (activity().length === 0) {
+    <p>No activity recorded yet.</p>
+    } @else {
+    <ul class="feed">
+      @for (a of activity().slice(0, 10); track a.id; let i = $index) {
+      <li class="feed-item" [style.--i]="i">
+        <span class="feed-dot" [attr.data-action]="a.action"></span>
+        <div class="feed-text">
+          <strong>{{ a.actorName }}</strong>
+          <span class="role-chip">{{ a.actorRole }}</span>
+          {{ activityLabel(a) }}
+          <span class="feed-claim">claim #{{ a.expenseId }}</span>
+          @if (a.action === 'REJECTED' && a.details) {
+          <div class="feed-note">{{ a.details }}</div>
+          }
+        </div>
+        <div class="feed-time">{{ a.createdAt | date: 'dd MMM, hh:mm a' }}</div>
+      </li>
+      }
+    </ul>
+    }
+  </div>
+  }
+
+  @if (selectedClaim(); as claim) {
+  <app-claim-details [expense]="claim" (closed)="closeDetails()" />
   }
 </div>

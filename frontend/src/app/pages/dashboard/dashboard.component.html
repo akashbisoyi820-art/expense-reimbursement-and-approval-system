@@ -92,6 +92,7 @@
         <th>Status</th>
         <th>Reason</th>
         <th>Receipt</th>
+        <th>Details</th>
       </tr>
       </thead>
       <tbody>
@@ -117,6 +118,9 @@
           -
           }
         </td>
+        <td>
+          <button class="link-btn" (click)="openDetails(e.id)">Details</button>
+        </td>
       </tr>
       }
       </tbody>
@@ -124,4 +128,8 @@
     }
     }
   </div>
+
+  @if (selectedClaim(); as claim) {
+  <app-claim-details [expense]="claim" (closed)="closeDetails()" />
+  }
 </div>

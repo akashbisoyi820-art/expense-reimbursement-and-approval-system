@@ -22,9 +22,31 @@ export interface ExpenseRequest {
   description: string;
 }
 
+export interface AuditEntry {
+  id: number;
+  expenseId: number;
+  action: string;
+  actorName: string;
+  actorRole: string;
+  fromStatus: string | null;
+  toStatus: string | null;
+  details: string | null;
+  createdAt: string;
+}
+
+export interface ClaimComment {
+  id: number;
+  authorName: string;
+  authorRole: string;
+  message: string;
+  createdAt: string;
+  mine: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ExpenseService {
-  private baseUrl = 'http://localhost:8080/api/expenses';
+  private apiRoot = 'http://localhost:8080/api';
+  private baseUrl = `${this.apiRoot}/expenses`;
 
   constructor(private http: HttpClient) {}
 
@@ -72,5 +94,21 @@ export class ExpenseService {
           setTimeout(() => URL.revokeObjectURL(url), 60000);
         })
       );
+  }
+
+  getHistory(id: number): Observable<AuditEntry[]> {
+    return this.http.get<AuditEntry[]>(`${this.baseUrl}/${id}/history`);
+  }
+
+  getComments(id: number): Observable<ClaimComment[]> {
+    return this.http.get<ClaimComment[]>(`${this.baseUrl}/${id}/comments`);
+  }
+
+  addComment(id: number, message: string): Observable<ClaimComment> {
+    return this.http.post<ClaimComment>(`${this.baseUrl}/${id}/comments`, { message });
+  }
+
+  getRecentActivity(): Observable<AuditEntry[]> {
+    return this.http.get<AuditEntry[]>(`${this.apiRoot}/audit/recent`);
   }
 }

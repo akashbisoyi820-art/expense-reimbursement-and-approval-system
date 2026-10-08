@@ -1,9 +1,10 @@
-import { DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ClaimDetailsComponent } from '../../components/claim-details/claim-details.component';
 import { AuthService } from '../../services/auth.service';
-import { Expense, ExpenseService } from '../../services/expense.service';
+import { AuditEntry, Expense, ExpenseService } from '../../services/expense.service';
 
 interface StatCard {
   key: string;
@@ -19,7 +20,7 @@ interface StatCard {
 
 @Component({
   selector: 'app-approvals',
-  imports: [FormsModule, DecimalPipe],
+  imports: [FormsModule, DecimalPipe, DatePipe, ClaimDetailsComponent],
   templateUrl: './approvals.component.html',
   styleUrl: './approvals.component.css'
 })
@@ -37,12 +38,22 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
 
   pending = signal<Expense[]>([]);
   approved = signal<Expense[]>([]);
+  activity = signal<AuditEntry[]>([]);
   loaded = signal(false);
   message = signal('');
   error = signal('');
 
   rejectingId = signal<number | null>(null);
   rejectReason = '';
+
+  selectedId = signal<number | null>(null);
+  selectedClaim = computed(() => {
+    const id = this.selectedId();
+    if (id === null) {
+      return null;
+    }
+    return [...this.pending(), ...this.approved()].find((e) => e.id === id) ?? null;
+  });
 
   shown = signal<Record<string, number>>({
     PENDING: 0,
@@ -133,6 +144,14 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
     cancelAnimationFrame(this.frameId);
   }
 
+  openDetails(id: number) {
+    this.selectedId.set(id);
+  }
+
+  closeDetails() {
+    this.selectedId.set(null);
+  }
+
   tilt(event: MouseEvent) {
     const el = event.currentTarget as HTMLElement;
     const rect = el.getBoundingClientRect();
@@ -150,6 +169,23 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
 
   go(id: string) {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  activityLabel(a: AuditEntry): string {
+    switch (a.action) {
+      case 'SUBMITTED':
+        return 'submitted';
+      case 'RECEIPT_UPLOADED':
+        return 'uploaded a receipt for';
+      case 'APPROVED':
+        return 'approved';
+      case 'REJECTED':
+        return 'rejected';
+      case 'REIMBURSED':
+        return 'reimbursed';
+      default:
+        return a.action.toLowerCase();
+    }
   }
 
   loadAll() {
@@ -172,6 +208,11 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
           this.refreshStats();
         },
         error: () => this.error.set('Failed to load approved expenses')
+      });
+
+      this.expenseService.getRecentActivity().subscribe({
+        next: (data) => this.activity.set(data),
+        error: () => this.error.set('Failed to load recent activity')
       });
     }
   }

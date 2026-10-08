@@ -2,6 +2,7 @@ import { DecimalPipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ClaimDetailsComponent } from '../../components/claim-details/claim-details.component';
 import { AuthService } from '../../services/auth.service';
 import { Expense, ExpenseService } from '../../services/expense.service';
 
@@ -16,7 +17,7 @@ interface StatCard {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [FormsModule, DecimalPipe],
+  imports: [FormsModule, DecimalPipe, ClaimDetailsComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
@@ -43,6 +44,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   selectedStatus = signal('ALL');
   message = signal('');
   error = signal('');
+
+  selectedId = signal<number | null>(null);
+  selectedClaim = computed(() => {
+    const id = this.selectedId();
+    return id === null ? null : (this.expenses().find((e) => e.id === id) ?? null);
+  });
 
   shown = signal<Record<string, number>>({
     TOTAL: 0,
@@ -97,6 +104,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     cancelAnimationFrame(this.frameId);
+  }
+
+  openDetails(id: number) {
+    this.selectedId.set(id);
+  }
+
+  closeDetails() {
+    this.selectedId.set(null);
   }
 
   countFor(status: string): number {

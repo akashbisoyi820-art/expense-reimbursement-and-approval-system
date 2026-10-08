@@ -1,0 +1,124 @@
+<div class="backdrop" (click)="close()"></div>
+
+<aside class="panel" role="dialog" aria-modal="true" aria-label="Claim details">
+  <header class="panel-head">
+    <div>
+      <div class="claim-title">Claim #{{ expense().id }}</div>
+      <div class="claim-sub">
+        {{ expense().category }} &middot; {{ currency }}{{ expense().amount | number: '1.0-2' }}
+      </div>
+    </div>
+    <div class="head-right">
+      <span class="badge" [class]="expense().status">{{ expense().status }}</span>
+      <button class="close-btn" (click)="close()" aria-label="Close">&#10005;</button>
+    </div>
+  </header>
+
+  <div class="summary">
+    <div>
+      <span>Employee</span>
+      <strong>{{ expense().employeeName }}</strong>
+    </div>
+    <div>
+      <span>Expense date</span>
+      <strong>{{ expense().expenseDate }}</strong>
+    </div>
+    <div class="wide">
+      <span>Description</span>
+      <strong>{{ expense().description || '-' }}</strong>
+    </div>
+    @if (expense().rejectionReason) {
+    <div class="wide">
+      <span>Rejection reason</span>
+      <strong>{{ expense().rejectionReason }}</strong>
+    </div>
+    }
+  </div>
+
+  <div class="tabs">
+    <button class="tab" [class.active]="tab() === 'timeline'" (click)="setTab('timeline')">
+      Timeline ({{ history().length }})
+    </button>
+    <button class="tab" [class.active]="tab() === 'comments'" (click)="setTab('comments')">
+      Comments ({{ comments().length }})
+    </button>
+  </div>
+
+  @if (error()) {
+  <p class="error">{{ error() }}</p>
+  }
+
+  <div class="body" #scroller>
+    @if (tab() === 'timeline') {
+    @if (loadingHistory()) {
+    <div class="skel"></div>
+    <div class="skel"></div>
+    <div class="skel"></div>
+    } @else if (history().length === 0) {
+    <div class="empty">
+      No history recorded for this claim. It was created before the audit trail was added.
+    </div>
+    } @else {
+    <ol class="timeline">
+      @for (h of history(); track h.id; let i = $index) {
+      <li class="event" [style.--i]="i">
+        <span class="dot" [attr.data-action]="h.action"></span>
+        <div class="event-title">{{ actionLabel(h.action) }}</div>
+        <div class="event-meta">by {{ h.actorName }} ({{ h.actorRole }})</div>
+        <div class="event-time">{{ h.createdAt | date: 'dd MMM yyyy, hh:mm a' }}</div>
+
+        @if (h.toStatus && h.fromStatus !== h.toStatus) {
+        <div class="transition">
+          @if (h.fromStatus) {
+          <span class="badge" [class]="h.fromStatus">{{ h.fromStatus }}</span>
+          <span class="arrow">&rarr;</span>
+          }
+          <span class="badge" [class]="h.toStatus">{{ h.toStatus }}</span>
+        </div>
+        }
+
+        @if (h.details) {
+        <div class="event-details">{{ h.details }}</div>
+        }
+      </li>
+      }
+    </ol>
+    }
+    } @else {
+    @if (loadingComments()) {
+    <div class="skel"></div>
+    <div class="skel"></div>
+    } @else if (comments().length === 0) {
+    <div class="empty">No comments yet. Start the conversation below.</div>
+    } @else {
+    <div class="chat">
+      @for (c of comments(); track c.id) {
+      <div class="msg" [class.mine]="c.mine">
+        <div class="msg-meta">
+          <span class="avatar">{{ initial(c.authorName) }}</span>
+          <strong>{{ c.mine ? 'You' : c.authorName }}</strong>
+          <span class="role-chip">{{ c.authorRole }}</span>
+        </div>
+        <div class="bubble">{{ c.message }}</div>
+        <div class="msg-time">{{ c.createdAt | date: 'dd MMM, hh:mm a' }}</div>
+      </div>
+      }
+    </div>
+    }
+    }
+  </div>
+
+  @if (tab() === 'comments') {
+  <div class="composer">
+      <textarea
+        rows="2"
+        maxlength="1000"
+        placeholder="Write a comment (Ctrl + Enter to send)"
+        [(ngModel)]="newMessage"
+        (keydown.control.enter)="sendComment()"></textarea>
+    <button class="send-btn" (click)="sendComment()" [disabled]="sending() || !newMessage.trim()">
+      {{ sending() ? 'Sending...' : 'Send' }}
+    </button>
+  </div>
+  }
+</aside>
