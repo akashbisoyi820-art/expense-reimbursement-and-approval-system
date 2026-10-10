@@ -11,19 +11,26 @@ A full-stack web application for managing office expense claims. Employees submi
 - Submit an expense (category, amount, date, description) with an optional receipt (PDF, PNG or JPG, max 5 MB)
 - Dashboard with summary cards (total, pending, approved, rejected, reimbursed) and a status filter
 - See the rejection reason and view uploaded receipts
+- Claim details panel with a full audit trail (who did what, and when) and a comment thread between employee and approver
+- Search and filter own claims (keyword, status, category, date range, amount range) with sorting and pagination
 
 **Manager**
 - Review pending expenses and open their receipts
 - Approve, or reject with a required reason
+- Claim details panel with a full audit trail (who did what, and when) and a comment thread between employee and approver
+- All Claims search with an employee filter, sorting and pagination
 
 **Admin**
 - Everything a manager can do
 - Reimburse approved expenses
 - Create Manager and Admin accounts
+- Recent Activity feed of every action across all claims
+- All Claims search with an employee filter, sorting and pagination
 
 **General**
 - JWT authentication and role-based access control
 - Each page has its own animated background, animated screen transitions and button click effects
+- Dark and light theme with the choice saved in the browser
 
 ## Workflow
 
@@ -67,6 +74,11 @@ PENDING -> REJECTED (with a reason)
 | PUT    | /api/expenses/{id}/reimburse  | Admin                 | Mark as reimbursed             |
 | POST   | /api/expenses/{id}/receipt    | Expense owner         | Upload a receipt               |
 | GET    | /api/expenses/{id}/receipt    | Owner, Manager, Admin | View a receipt                 |
+| GET    | /api/expenses/{id}/history    | Owner, Manager, Admin | Audit trail of a claim         |
+| GET    | /api/expenses/{id}/comments   | Owner, Manager, Admin | List comments on a claim       |
+| POST   | /api/expenses/{id}/comments   | Owner, Manager, Admin | Add a comment                  |
+| GET    | /api/audit/recent             | Admin                 | Recent activity across claims  |
+| GET    | /api/expenses/search          | Any logged-in user    | Search, filter, sort and paginate claims (employees see only their own) |
 
 ## Security
 

@@ -1,4 +1,13 @@
 package org.smartcoders.expensereimbursementandapprovalsystem.dto;
 
-public record CommentResponse() {
+import java.time.LocalDateTime;
+
+public record CommentResponse(
+        Long id,
+        String authorName,
+        String authorRole,
+        String message,
+        LocalDateTime createdAt,
+        boolean mine
+) {
 }

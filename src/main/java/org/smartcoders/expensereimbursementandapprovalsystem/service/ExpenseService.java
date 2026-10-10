@@ -1,8 +1,10 @@
 package org.smartcoders.expensereimbursementandapprovalsystem.service;
 
 import lombok.RequiredArgsConstructor;
+import org.smartcoders.expensereimbursementandapprovalsystem.dto.AuditLogResponse;
 import org.smartcoders.expensereimbursementandapprovalsystem.dto.ExpenseRequest;
 import org.smartcoders.expensereimbursementandapprovalsystem.dto.ExpenseResponse;
+import org.smartcoders.expensereimbursementandapprovalsystem.entity.AuditAction;
 import org.smartcoders.expensereimbursementandapprovalsystem.entity.Expense;
 import org.smartcoders.expensereimbursementandapprovalsystem.entity.ExpenseStatus;
 import org.smartcoders.expensereimbursementandapprovalsystem.entity.User;
@@ -11,6 +13,7 @@ import org.smartcoders.expensereimbursementandapprovalsystem.repository.UserRepo
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -23,9 +26,11 @@ public class ExpenseService {
     private final ExpenseRepository expenseRepository;
     private final UserRepository userRepository;
     private final ReceiptStorageService receiptStorageService;
+    private final AuditService auditService;
 
     public record ReceiptFile(Resource resource, String contentType) {}
 
+    @Transactional
     public ExpenseResponse createExpense(String email, ExpenseRequest request) {
         User user = getUser(email);
 
@@ -37,7 +42,11 @@ public class ExpenseService {
         expense.setDescription(request.getDescription());
         expense.setStatus(ExpenseStatus.PENDING);
 
-        return toResponse(expenseRepository.save(expense));
+        Expense saved = expenseRepository.save(expense);
+        auditService.log(saved.getId(), AuditAction.SUBMITTED, user,
+                null, ExpenseStatus.PENDING,
+                "Submitted a " + saved.getCategory() + " claim of " + saved.getAmount());
+        return toResponse(saved);
     }
 
     public List<ExpenseResponse> getMyExpenses(String email) {
@@ -62,28 +71,50 @@ public class ExpenseService {
                 .toList();
     }
 
-    public ExpenseResponse approve(Long id) {
+    @Transactional
+    public ExpenseResponse approve(Long id, String actorEmail) {
+        User actor = getUser(actorEmail);
         Expense expense = getExpense(id);
         requireStatus(expense, ExpenseStatus.PENDING);
+
+        ExpenseStatus from = expense.getStatus();
         expense.setStatus(ExpenseStatus.APPROVED);
-        return toResponse(expenseRepository.save(expense));
+        Expense saved = expenseRepository.save(expense);
+
+        auditService.log(id, AuditAction.APPROVED, actor, from, ExpenseStatus.APPROVED, null);
+        return toResponse(saved);
     }
 
-    public ExpenseResponse reject(Long id, String reason) {
+    @Transactional
+    public ExpenseResponse reject(Long id, String reason, String actorEmail) {
+        User actor = getUser(actorEmail);
         Expense expense = getExpense(id);
         requireStatus(expense, ExpenseStatus.PENDING);
+
+        ExpenseStatus from = expense.getStatus();
         expense.setStatus(ExpenseStatus.REJECTED);
         expense.setRejectionReason(reason);
-        return toResponse(expenseRepository.save(expense));
+        Expense saved = expenseRepository.save(expense);
+
+        auditService.log(id, AuditAction.REJECTED, actor, from, ExpenseStatus.REJECTED, reason);
+        return toResponse(saved);
     }
 
-    public ExpenseResponse reimburse(Long id) {
+    @Transactional
+    public ExpenseResponse reimburse(Long id, String actorEmail) {
+        User actor = getUser(actorEmail);
         Expense expense = getExpense(id);
         requireStatus(expense, ExpenseStatus.APPROVED);
+
+        ExpenseStatus from = expense.getStatus();
         expense.setStatus(ExpenseStatus.REIMBURSED);
-        return toResponse(expenseRepository.save(expense));
+        Expense saved = expenseRepository.save(expense);
+
+        auditService.log(id, AuditAction.REIMBURSED, actor, from, ExpenseStatus.REIMBURSED, null);
+        return toResponse(saved);
     }
 
+    @Transactional
     public ExpenseResponse uploadReceipt(String email, Long id, MultipartFile file) {
         Expense expense = getExpense(id);
 
@@ -97,16 +128,16 @@ public class ExpenseService {
         }
 
         expense.setReceiptPath(receiptStorageService.store(file));
-        return toResponse(expenseRepository.save(expense));
+        Expense saved = expenseRepository.save(expense);
+
+        auditService.log(id, AuditAction.RECEIPT_UPLOADED, expense.getUser(),
+                expense.getStatus(), expense.getStatus(), "Receipt uploaded");
+        return toResponse(saved);
     }
 
     public ReceiptFile getReceipt(String email, boolean privileged, Long id) {
-        Expense expense = getExpense(id);
+        Expense expense = requireAccessibleExpense(id, email, privileged);
 
-        if (!privileged && !expense.getUser().getEmail().equals(email)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "You cannot view this receipt");
-        }
         if (!hasReceipt(expense)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No receipt uploaded");
         }
@@ -115,6 +146,20 @@ public class ExpenseService {
         return new ReceiptFile(
                 receiptStorageService.load(filename),
                 receiptStorageService.contentTypeFor(filename));
+    }
+
+    public List<AuditLogResponse> getHistory(String email, boolean privileged, Long id) {
+        requireAccessibleExpense(id, email, privileged);
+        return auditService.getHistory(id);
+    }
+
+    // Owner, managers and admins can access a claim
+    public Expense requireAccessibleExpense(Long id, String email, boolean privileged) {
+        Expense expense = getExpense(id);
+        if (!privileged && !expense.getUser().getEmail().equals(email)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot access this claim");
+        }
+        return expense;
     }
 
     private boolean hasReceipt(Expense expense) {
@@ -138,7 +183,7 @@ public class ExpenseService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
 
-    private ExpenseResponse toResponse(Expense e) {
+    public ExpenseResponse toResponse(Expense e) {
         return new ExpenseResponse(
                 e.getId(),
                 e.getCategory(),

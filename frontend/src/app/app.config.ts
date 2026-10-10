@@ -5,8 +5,10 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
 import { authInterceptor } from './interceptors/auth.interceptor';
 import { enableButtonRipple } from './ripple';
+import { initTheme } from './theme';
 
 enableButtonRipple();
+initTheme();
 
 export const appConfig: ApplicationConfig = {
   providers: [

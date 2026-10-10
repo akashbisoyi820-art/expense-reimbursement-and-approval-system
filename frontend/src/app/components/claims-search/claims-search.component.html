@@ -1,0 +1,177 @@
+@if (heading()) {
+<h3>{{ heading() }}</h3>
+}
+
+<div class="search-bar">
+  <div class="search-input">
+    <input
+      type="search"
+      placeholder="Search by description, category or employee"
+      [(ngModel)]="keyword"
+      (keyup.enter)="search()" />
+  </div>
+  <button (click)="search()">Search</button>
+  <button class="cancel" (click)="reset()">Reset</button>
+  <button class="cancel toggle" (click)="showAdvanced.set(!showAdvanced())">
+    {{ showAdvanced() ? 'Hide filters' : 'More filters' }}
+    @if (activeAdvanced() > 0) {
+    <span class="count">{{ activeAdvanced() }}</span>
+    }
+  </button>
+</div>
+
+@if (showAdvanced()) {
+<div class="advanced">
+  <label>
+    <span>Category</span>
+    <select [(ngModel)]="category">
+      <option value="ALL">All categories</option>
+      @for (c of categories; track c) {
+      <option [value]="c">{{ c }}</option>
+      }
+    </select>
+  </label>
+
+  @if (showEmployee()) {
+  <label>
+    <span>Employee</span>
+    <input
+      type="text"
+      placeholder="Name or email"
+      [(ngModel)]="employee"
+      (keyup.enter)="search()" />
+  </label>
+  }
+
+  <label>
+    <span>From date</span>
+    <input type="date" [(ngModel)]="from" />
+  </label>
+  <label>
+    <span>To date</span>
+    <input type="date" [(ngModel)]="to" />
+  </label>
+  <label>
+    <span>Min amount</span>
+    <input type="number" min="0" placeholder="0" [(ngModel)]="minAmount" />
+  </label>
+  <label>
+    <span>Max amount</span>
+    <input type="number" min="0" placeholder="Any" [(ngModel)]="maxAmount" />
+  </label>
+
+  <div class="advanced-actions">
+    <button (click)="search()">Apply filters</button>
+  </div>
+</div>
+}
+
+<div class="chips">
+  @for (s of statuses; track s) {
+  <button class="filter-btn" [class.active]="status() === s" (click)="setStatus(s)">
+    {{ s }}
+  </button>
+  }
+</div>
+
+@if (error()) {
+<p class="error">{{ error() }}</p>
+}
+
+<div class="results" [class.loading]="loading()">
+  @if (result() === null) {
+  <div class="skel"></div>
+  <div class="skel"></div>
+  <div class="skel"></div>
+  } @else if (rows().length === 0) {
+  <div class="empty">
+    <p>No claims match your filters.</p>
+    <button class="cancel" (click)="reset()">Clear filters</button>
+  </div>
+  } @else {
+  <table>
+    <thead>
+    <tr>
+      <th class="sortable" (click)="sort('id')">ID {{ arrow('id') }}</th>
+      @if (showEmployee()) {
+      <th>Employee</th>
+      }
+      <th class="sortable" (click)="sort('category')">Category {{ arrow('category') }}</th>
+      <th class="sortable" (click)="sort('amount')">Amount {{ arrow('amount') }}</th>
+      <th class="sortable" (click)="sort('expenseDate')">Date {{ arrow('expenseDate') }}</th>
+      <th>Description</th>
+      <th class="sortable" (click)="sort('status')">Status {{ arrow('status') }}</th>
+      @if (!showEmployee()) {
+      <th>Reason</th>
+      }
+      <th>Receipt</th>
+      <th>Details</th>
+    </tr>
+    </thead>
+    <tbody>
+    @for (e of rows(); track e.id) {
+    <tr>
+      <td>{{ e.id }}</td>
+      @if (showEmployee()) {
+      <td>{{ e.employeeName }}</td>
+      }
+      <td>{{ e.category }}</td>
+      <td>{{ currency }}{{ e.amount | number: '1.0-2' }}</td>
+      <td>{{ e.expenseDate }}</td>
+      <td>{{ e.description || '-' }}</td>
+      <td><span class="badge" [class]="e.status">{{ e.status }}</span></td>
+      @if (!showEmployee()) {
+      <td>{{ e.rejectionReason || '-' }}</td>
+      }
+      <td>
+        @if (e.hasReceipt) {
+        <button class="link-btn" (click)="receipt.emit(e.id)">View</button>
+        } @else if (allowUpload() && e.status === 'PENDING') {
+        <input
+          type="file"
+          class="row-file"
+          accept=".pdf,.png,.jpg,.jpeg"
+          (change)="upload.emit({ id: e.id, event: $event })" />
+        } @else {
+        <span class="muted">-</span>
+        }
+      </td>
+      <td>
+        <button class="link-btn" (click)="details.emit(e)">Details</button>
+      </td>
+    </tr>
+    }
+    </tbody>
+  </table>
+  }
+</div>
+
+@if (totalPages() > 0) {
+<div class="pager">
+  <div class="pager-info">Showing {{ firstItem() }}-{{ lastItem() }} of {{ total() }}</div>
+
+  <div class="pager-controls">
+    <button class="cancel" [disabled]="page() === 0" (click)="goTo(page() - 1)">Previous</button>
+    @for (p of pageButtons(); track p) {
+    <button class="page-btn" [class.active]="p === page()" (click)="goTo(p)">
+      {{ p + 1 }}
+    </button>
+    }
+    <button
+      class="cancel"
+      [disabled]="page() + 1 >= totalPages()"
+      (click)="goTo(page() + 1)">
+      Next
+    </button>
+  </div>
+
+  <label class="size">
+    <span>Rows</span>
+    <select [ngModel]="size()" (ngModelChange)="changeSize($event)">
+      @for (n of pageSizes; track n) {
+      <option [ngValue]="n">{{ n }}</option>
+      }
+    </select>
+  </label>
+</div>
+}

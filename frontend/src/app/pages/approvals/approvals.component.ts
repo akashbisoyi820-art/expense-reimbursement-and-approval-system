@@ -3,6 +3,7 @@ import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ClaimDetailsComponent } from '../../components/claim-details/claim-details.component';
+import { ClaimsSearchComponent } from '../../components/claims-search/claims-search.component';
 import { AuthService } from '../../services/auth.service';
 import { AuditEntry, Expense, ExpenseService } from '../../services/expense.service';
 
@@ -20,7 +21,7 @@ interface StatCard {
 
 @Component({
   selector: 'app-approvals',
-  imports: [FormsModule, DecimalPipe, DatePipe, ClaimDetailsComponent],
+  imports: [FormsModule, DecimalPipe, DatePipe, ClaimDetailsComponent, ClaimsSearchComponent],
   templateUrl: './approvals.component.html',
   styleUrl: './approvals.component.css'
 })
@@ -46,14 +47,8 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
   rejectingId = signal<number | null>(null);
   rejectReason = '';
 
-  selectedId = signal<number | null>(null);
-  selectedClaim = computed(() => {
-    const id = this.selectedId();
-    if (id === null) {
-      return null;
-    }
-    return [...this.pending(), ...this.approved()].find((e) => e.id === id) ?? null;
-  });
+  refreshKey = signal(0);
+  selectedClaim = signal<Expense | null>(null);
 
   shown = signal<Record<string, number>>({
     PENDING: 0,
@@ -144,12 +139,12 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
     cancelAnimationFrame(this.frameId);
   }
 
-  openDetails(id: number) {
-    this.selectedId.set(id);
+  openDetails(expense: Expense) {
+    this.selectedClaim.set(expense);
   }
 
   closeDetails() {
-    this.selectedId.set(null);
+    this.selectedClaim.set(null);
   }
 
   tilt(event: MouseEvent) {
@@ -217,6 +212,12 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Reloads the tables, cards and the All Claims search after an action
+  private afterAction() {
+    this.loadAll();
+    this.refreshKey.update((n) => n + 1);
+  }
+
   private refreshStats() {
     const targets: Record<string, number> = {};
     for (const s of this.stats()) {
@@ -264,7 +265,7 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
     this.expenseService.approve(id).subscribe({
       next: () => {
         this.message.set(`Expense #${id} approved`);
-        this.loadAll();
+        this.afterAction();
       },
       error: () => this.error.set('Failed to approve expense')
     });
@@ -298,7 +299,7 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
       next: () => {
         this.message.set(`Expense #${id} rejected`);
         this.cancelReject();
-        this.loadAll();
+        this.afterAction();
       },
       error: () => this.error.set('Failed to reject expense')
     });
@@ -310,7 +311,7 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
     this.expenseService.reimburse(id).subscribe({
       next: () => {
         this.message.set(`Expense #${id} reimbursed`);
-        this.loadAll();
+        this.afterAction();
       },
       error: () => this.error.set('Failed to reimburse expense')
     });

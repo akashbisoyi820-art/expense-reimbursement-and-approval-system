@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 
 export interface Expense {
@@ -43,6 +43,25 @@ export interface ClaimComment {
   mine: boolean;
 }
 
+export interface PageResult<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export interface ExpenseFilters {
+  keyword?: string;
+  status?: string;
+  category?: string;
+  employee?: string;
+  from?: string;
+  to?: string;
+  minAmount?: number | null;
+  maxAmount?: number | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ExpenseService {
   private apiRoot = 'http://localhost:8080/api';
@@ -64,6 +83,39 @@ export class ExpenseService {
 
   getApprovedExpenses(): Observable<Expense[]> {
     return this.http.get<Expense[]>(`${this.baseUrl}/approved`);
+  }
+
+  searchExpenses(
+    filters: ExpenseFilters,
+    page: number,
+    size: number,
+    sortBy: string,
+    direction: string
+  ): Observable<PageResult<Expense>> {
+    let params = new HttpParams()
+      .set('page', String(page))
+      .set('size', String(size))
+      .set('sortBy', sortBy)
+      .set('direction', direction);
+
+    const entries: [string, string | number | null | undefined][] = [
+      ['keyword', filters.keyword?.trim()],
+      ['status', filters.status && filters.status !== 'ALL' ? filters.status : undefined],
+      ['category', filters.category && filters.category !== 'ALL' ? filters.category : undefined],
+      ['employee', filters.employee?.trim()],
+      ['from', filters.from],
+      ['to', filters.to],
+      ['minAmount', filters.minAmount],
+      ['maxAmount', filters.maxAmount]
+    ];
+
+    for (const [key, value] of entries) {
+      if (value !== null && value !== undefined && value !== '') {
+        params = params.set(key, String(value));
+      }
+    }
+
+    return this.http.get<PageResult<Expense>>(`${this.baseUrl}/search`, { params });
   }
 
   approve(id: number): Observable<Expense> {

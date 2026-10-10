@@ -1,8 +1,9 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ClaimDetailsComponent } from '../../components/claim-details/claim-details.component';
+import { ClaimsSearchComponent } from '../../components/claims-search/claims-search.component';
 import { AuthService } from '../../services/auth.service';
 import { Expense, ExpenseService } from '../../services/expense.service';
 
@@ -17,7 +18,7 @@ interface StatCard {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [FormsModule, DecimalPipe, ClaimDetailsComponent],
+  imports: [FormsModule, DecimalPipe, ClaimDetailsComponent, ClaimsSearchComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
@@ -27,7 +28,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   currency = '₹';
   categories = ['Travel', 'Food', 'Accommodation', 'Office Supplies', 'Other'];
-  statuses = ['ALL', 'PENDING', 'APPROVED', 'REJECTED', 'REIMBURSED'];
   placeholders = [1, 2, 3, 4, 5];
 
   private readonly maxFileSize = 5 * 1024 * 1024;
@@ -45,11 +45,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   message = signal('');
   error = signal('');
 
-  selectedId = signal<number | null>(null);
-  selectedClaim = computed(() => {
-    const id = this.selectedId();
-    return id === null ? null : (this.expenses().find((e) => e.id === id) ?? null);
-  });
+  search = viewChild(ClaimsSearchComponent);
+  refreshKey = signal(0);
+  selectedClaim = signal<Expense | null>(null);
 
   shown = signal<Record<string, number>>({
     TOTAL: 0,
@@ -59,13 +57,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     REIMBURSED: 0
   });
   private frameId = 0;
-
-  filteredExpenses = computed(() => {
-    const status = this.selectedStatus();
-    return status === 'ALL'
-      ? this.expenses()
-      : this.expenses().filter((e) => e.status === status);
-  });
 
   stats = computed<StatCard[]>(() => {
     const list = this.expenses();
@@ -106,22 +97,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
     cancelAnimationFrame(this.frameId);
   }
 
-  openDetails(id: number) {
-    this.selectedId.set(id);
+  openDetails(expense: Expense) {
+    this.selectedClaim.set(expense);
   }
 
   closeDetails() {
-    this.selectedId.set(null);
-  }
-
-  countFor(status: string): number {
-    return status === 'ALL'
-      ? this.expenses().length
-      : this.expenses().filter((e) => e.status === status).length;
-  }
-
-  setFilter(status: string) {
-    this.selectedStatus.set(status);
+    this.selectedClaim.set(null);
   }
 
   filterFor(statKey: string): string {
@@ -129,7 +110,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   pickStat(statKey: string, target: HTMLElement) {
-    this.setFilter(this.filterFor(statKey));
+    this.search()?.setStatus(this.filterFor(statKey));
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
@@ -165,6 +146,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.error.set('Failed to load expenses');
       }
     });
+  }
+
+  // Refreshes the summary cards and the search table together
+  private refreshAll() {
+    this.loadExpenses();
+    this.refreshKey.update((n) => n + 1);
   }
 
   private animateTo(targets: Record<string, number>) {
@@ -248,25 +235,29 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
           if (!file) {
             this.message.set('Expense submitted successfully');
-            this.loadExpenses();
+            this.refreshAll();
             return;
           }
 
           this.expenseService.uploadReceipt(created.id, file).subscribe({
             next: () => {
               this.message.set('Expense submitted with receipt');
-              this.loadExpenses();
+              this.refreshAll();
             },
             error: () => {
               this.error.set(
                 'Expense submitted, but the receipt upload failed. You can upload it again from the table below.'
               );
-              this.loadExpenses();
+              this.refreshAll();
             }
           });
         },
         error: () => this.error.set('Failed to submit expense')
       });
+  }
+
+  onUpload(payload: { id: number; event: Event }) {
+    this.uploadFor(payload.id, payload.event);
   }
 
   uploadFor(id: number, event: Event) {
@@ -289,7 +280,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.expenseService.uploadReceipt(id, file).subscribe({
       next: () => {
         this.message.set(`Receipt uploaded for expense #${id}`);
-        this.loadExpenses();
+        this.refreshAll();
       },
       error: () => {
         this.error.set('Failed to upload receipt');

@@ -75,7 +75,7 @@
           }
         </td>
         <td>
-          <button class="link-btn" (click)="openDetails(e.id)">Details</button>
+          <button class="link-btn" (click)="openDetails(e)">Details</button>
         </td>
         <td class="actions">
           <button class="approve" (click)="approve(e.id)">Approve</button>
@@ -141,7 +141,7 @@
           }
         </td>
         <td>
-          <button class="link-btn" (click)="openDetails(e.id)">Details</button>
+          <button class="link-btn" (click)="openDetails(e)">Details</button>
         </td>
         <td class="actions">
           <button class="reimburse" (click)="reimburse(e.id)">Reimburse</button>
@@ -152,7 +152,18 @@
     </table>
     }
   </div>
+  }
 
+  <div class="card" id="all-card">
+    <app-claims-search
+      heading="All Claims"
+      [showEmployee]="true"
+      [refresh]="refreshKey()"
+      (details)="openDetails($event)"
+      (receipt)="viewReceipt($event)" />
+  </div>
+
+  @if (isAdmin) {
   <div class="card" id="activity-card">
     <h3>Recent Activity</h3>
 

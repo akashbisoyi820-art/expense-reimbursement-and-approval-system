@@ -1,4 +1,11 @@
 package org.smartcoders.expensereimbursementandapprovalsystem.repository;
 
-public interface CommentRepository {
+import org.smartcoders.expensereimbursementandapprovalsystem.entity.Comment;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface CommentRepository extends JpaRepository<Comment, Long> {
+
+    List<Comment> findByExpenseIdOrderByCreatedAtAscIdAsc(Long expenseId);
 }

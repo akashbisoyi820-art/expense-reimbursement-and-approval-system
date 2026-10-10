@@ -64,69 +64,14 @@
   </div>
 
   <div class="card" #tableCard>
-    <h3>My Expenses</h3>
-
-    <div class="filters">
-      @for (s of statuses; track s) {
-      <button
-        class="filter-btn"
-        [class.active]="selectedStatus() === s"
-        (click)="setFilter(s)">
-        {{ s }} ({{ countFor(s) }})
-      </button>
-      }
-    </div>
-
-    @if (filteredExpenses().length === 0) {
-    <p>No expenses found for this status.</p>
-    } @else {
-    @for (view of [selectedStatus()]; track view) {
-    <table>
-      <thead>
-      <tr>
-        <th>ID</th>
-        <th>Category</th>
-        <th>Amount</th>
-        <th>Date</th>
-        <th>Description</th>
-        <th>Status</th>
-        <th>Reason</th>
-        <th>Receipt</th>
-        <th>Details</th>
-      </tr>
-      </thead>
-      <tbody>
-      @for (e of filteredExpenses(); track e.id) {
-      <tr>
-        <td>{{ e.id }}</td>
-        <td>{{ e.category }}</td>
-        <td>{{ e.amount }}</td>
-        <td>{{ e.expenseDate }}</td>
-        <td>{{ e.description }}</td>
-        <td><span class="badge" [class]="e.status">{{ e.status }}</span></td>
-        <td>{{ e.rejectionReason || '-' }}</td>
-        <td>
-          @if (e.hasReceipt) {
-          <button class="link-btn" (click)="viewReceipt(e.id)">View</button>
-          } @else if (e.status === 'PENDING') {
-          <input
-            type="file"
-            class="row-file"
-            accept=".pdf,.png,.jpg,.jpeg"
-            (change)="uploadFor(e.id, $event)" />
-          } @else {
-          -
-          }
-        </td>
-        <td>
-          <button class="link-btn" (click)="openDetails(e.id)">Details</button>
-        </td>
-      </tr>
-      }
-      </tbody>
-    </table>
-    }
-    }
+    <app-claims-search
+      heading="My Expenses"
+      [allowUpload]="true"
+      [refresh]="refreshKey()"
+      (statusChange)="selectedStatus.set($event)"
+      (details)="openDetails($event)"
+      (receipt)="viewReceipt($event)"
+      (upload)="onUpload($event)" />
   </div>
 
   @if (selectedClaim(); as claim) {
