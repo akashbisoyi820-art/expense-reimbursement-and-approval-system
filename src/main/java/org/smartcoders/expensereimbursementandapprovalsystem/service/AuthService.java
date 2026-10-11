@@ -14,9 +14,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+
+    private static final List<String> DEPARTMENTS =
+            List.of("Engineering", "Finance", "HR", "Sales", "Marketing", "Operations", "Other");
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -29,6 +34,7 @@ public class AuthService {
                 request.getEmail(),
                 request.getPassword(),
                 Role.EMPLOYEE,
+                request.getDepartment(),
                 "User registered successfully");
     }
 
@@ -39,6 +45,7 @@ public class AuthService {
                 request.getEmail(),
                 request.getPassword(),
                 request.getRole(),
+                request.getDepartment(),
                 "User created successfully");
     }
 
@@ -54,7 +61,10 @@ public class AuthService {
         return new AuthResponse(token, user.getName(), user.getEmail(), user.getRole().name());
     }
 
-    private String saveUser(String name, String email, String password, Role role, String successMessage) {
+    private String saveUser(String name, String email, String password, Role role,
+                            String department, String successMessage) {
+        String normalizedDepartment = normalizeDepartment(department);
+
         if (userRepository.existsByEmail(email)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already exists");
         }
@@ -64,8 +74,20 @@ public class AuthService {
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
         user.setRole(role);
+        user.setDepartment(normalizedDepartment);
 
         userRepository.save(user);
         return successMessage;
+    }
+
+    private String normalizeDepartment(String department) {
+        if (department == null || department.isBlank()) {
+            return "Other";
+        }
+        return DEPARTMENTS.stream()
+                .filter(d -> d.equalsIgnoreCase(department.trim()))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Invalid department. Allowed: " + String.join(", ", DEPARTMENTS)));
     }
 }

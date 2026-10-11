@@ -13,6 +13,8 @@ A full-stack web application for managing office expense claims. Employees submi
 - See the rejection reason and view uploaded receipts
 - Claim details panel with a full audit trail (who did what, and when) and a comment thread between employee and approver
 - Search and filter own claims (keyword, status, category, date range, amount range) with sorting and pagination
+- Submit claims in 9 currencies (INR, USD, EUR, GBP, AED, SGD, AUD, CAD, JPY) with a live exchange-rate preview; the rate used is saved with each claim
+- Choose a department when registering
 
 **Manager**
 - Review pending expenses and open their receipts
@@ -31,6 +33,7 @@ A full-stack web application for managing office expense claims. Employees submi
 - JWT authentication and role-based access control
 - Each page has its own animated background, animated screen transitions and button click effects
 - Dark and light theme with the choice saved in the browser
+- All totals, summary cards and amount filters use the INR-converted amount, so claims in different currencies can be compared
 
 ## Workflow
 
@@ -46,6 +49,7 @@ PENDING -> REJECTED (with a reason)
 | Backend  | Java 17, Spring Boot, Spring Security (JWT), Spring Data JPA, Lombok, Maven  |
 | Frontend | Angular, TypeScript                                                          |
 | Database | MySQL 8                                                                      |
+| Exchange rates | Frankfurter API (https://api.frankfurter.dev, free, no key), cached for 6 hours |
 
 ## Project Structure
 
@@ -79,6 +83,8 @@ PENDING -> REJECTED (with a reason)
 | POST   | /api/expenses/{id}/comments   | Owner, Manager, Admin | Add a comment                  |
 | GET    | /api/audit/recent             | Admin                 | Recent activity across claims  |
 | GET    | /api/expenses/search          | Any logged-in user    | Search, filter, sort and paginate claims (employees see only their own) |
+| GET    | /api/currencies               | Any logged-in user    | List supported currencies      |
+| GET    | /api/currencies/rate          | Any logged-in user    | Current rate of a currency in INR |
 
 ## Security
 
@@ -187,6 +193,7 @@ Use `"role": "ADMIN"` to create another admin.
 - Receipts are stored on the local disk (`uploads/receipts`), not in cloud storage
 - Database password and JWT secret live in `application.properties`; use environment variables in production
 - No email notifications or password reset
+- Claims in a currency other than INR need internet access to fetch the exchange rate. If the rate service is down, the last known rate is used; if there is none, the claim cannot be submitted until it is back (INR claims always work).
 
 ## Team
 

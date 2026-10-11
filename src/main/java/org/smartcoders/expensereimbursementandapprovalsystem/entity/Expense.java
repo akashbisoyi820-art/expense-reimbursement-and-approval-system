@@ -24,8 +24,24 @@ public class Expense {
 
     private String category;
 
+    // Amount exactly as the employee entered it, in the claim's own currency
     @Column(nullable = false)
     private BigDecimal amount;
+
+    // ISO code of the claim's currency, for example INR, USD, EUR
+    @Column(length = 3)
+    private String currency;
+
+    // How many INR one unit of the currency was worth when the claim was submitted
+    @Column(precision = 19, scale = 6)
+    private BigDecimal exchangeRate;
+
+    // The claim amount converted to INR, using the rate saved above
+    @Column(precision = 38, scale = 2)
+    private BigDecimal amountInBase;
+
+    // The date the exchange rate belongs to
+    private LocalDate rateDate;
 
     private LocalDate expenseDate;
 

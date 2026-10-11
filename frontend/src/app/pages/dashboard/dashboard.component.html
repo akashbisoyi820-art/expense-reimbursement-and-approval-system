@@ -24,7 +24,7 @@
       <div class="stat-count">{{ s.count }} {{ s.count === 1 ? 'claim' : 'claims' }}</div>
       <div class="stat-bar"><span [style.--w]="s.percent + '%'"></span></div>
       <div class="stat-percent">
-        {{ s.key === 'TOTAL' ? 'All claims' : s.percent + '% of total' }}
+        {{ s.key === 'TOTAL' ? 'All claims, in INR' : s.percent + '% of total' }}
       </div>
     </div>
     }
@@ -46,7 +46,31 @@
       }
     </select>
 
-    <input type="number" placeholder="Amount" [(ngModel)]="amount" />
+    <div class="amount-row">
+      <select [ngModel]="claimCurrency" (ngModelChange)="setCurrency($event)" aria-label="Currency">
+        @for (c of currencies(); track c.code) {
+        <option [value]="c.code">{{ c.code }} - {{ c.name }}</option>
+        }
+      </select>
+      <input type="number" min="0" placeholder="Amount" [(ngModel)]="amount" />
+    </div>
+
+    @if (claimCurrency !== 'INR') {
+    <div class="fx-preview">
+      @if (rateLoading()) {
+      Fetching today's exchange rate...
+      } @else if (rateError()) {
+      <span class="fx-error">{{ rateError() }}</span>
+      } @else if (rateQuote(); as q) {
+      1 {{ q.currency }} = {{ currency }}{{ q.rate | number: '1.2-4' }}
+      (rate of {{ q.rateDate }})
+      @if (inrPreview() !== null) {
+      <strong>&asymp; {{ currency }}{{ inrPreview() | number: '1.2-2' }}</strong>
+      }
+      }
+    </div>
+    }
+
     <input type="date" [(ngModel)]="expenseDate" />
     <input type="text" placeholder="Description" [(ngModel)]="description" />
 

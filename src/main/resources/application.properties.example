@@ -9,3 +9,5 @@ jwt.expiration=86400000
 spring.servlet.multipart.max-file-size=5MB
 spring.servlet.multipart.max-request-size=5MB
 file.upload-dir=uploads/receipts
+# Optional: exchange rate API (free, no key needed). This is the default.
+exchange.api.base-url=https://api.frankfurter.dev

@@ -6,11 +6,16 @@ export interface Expense {
   id: number;
   category: string;
   amount: number;
+  currency: string;
+  amountInBase: number;
+  exchangeRate: number;
+  rateDate: string | null;
   expenseDate: string;
   description: string;
   status: string;
   employeeName: string;
   employeeEmail: string;
+  employeeDepartment: string | null;
   rejectionReason: string | null;
   hasReceipt: boolean;
 }
@@ -18,8 +23,21 @@ export interface Expense {
 export interface ExpenseRequest {
   category: string;
   amount: number;
+  currency: string;
   expenseDate: string;
   description: string;
+}
+
+export interface CurrencyInfo {
+  code: string;
+  name: string;
+}
+
+export interface RateQuote {
+  currency: string;
+  baseCurrency: string;
+  rate: number;
+  rateDate: string;
 }
 
 export interface AuditEntry {
@@ -162,5 +180,14 @@ export class ExpenseService {
 
   getRecentActivity(): Observable<AuditEntry[]> {
     return this.http.get<AuditEntry[]>(`${this.apiRoot}/audit/recent`);
+  }
+
+  getCurrencies(): Observable<CurrencyInfo[]> {
+    return this.http.get<CurrencyInfo[]>(`${this.apiRoot}/currencies`);
+  }
+
+  getRate(currency: string): Observable<RateQuote> {
+    const params = new HttpParams().set('currency', currency);
+    return this.http.get<RateQuote>(`${this.apiRoot}/currencies/rate`, { params });
   }
 }

@@ -4,6 +4,14 @@
 
   <input type="text" placeholder="Full name" [(ngModel)]="name" />
   <input type="email" placeholder="Email" [(ngModel)]="email" />
+
+  <label class="file-label">Department</label>
+  <select [(ngModel)]="department">
+    @for (d of departments; track d) {
+    <option [value]="d">{{ d }}</option>
+    }
+  </select>
+
   <input type="password" placeholder="Password (min 6 characters)" [(ngModel)]="password" />
   <input type="password" placeholder="Confirm password" [(ngModel)]="confirmPassword" />
 

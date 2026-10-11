@@ -5,7 +5,12 @@
     <div>
       <div class="claim-title">Claim #{{ expense().id }}</div>
       <div class="claim-sub">
-        {{ expense().category }} &middot; {{ currency }}{{ expense().amount | number: '1.0-2' }}
+        {{ expense().category }} &middot;
+        @if (expense().currency === 'INR') {
+        {{ currency }}{{ expense().amount | number: '1.0-2' }}
+        } @else {
+        {{ expense().amount | number: '1.0-2' }} {{ expense().currency }}
+        }
       </div>
     </div>
     <div class="head-right">
@@ -20,9 +25,38 @@
       <strong>{{ expense().employeeName }}</strong>
     </div>
     <div>
+      <span>Department</span>
+      <strong>{{ expense().employeeDepartment || '-' }}</strong>
+    </div>
+    <div>
       <span>Expense date</span>
       <strong>{{ expense().expenseDate }}</strong>
     </div>
+    <div>
+      <span>Amount</span>
+      <strong>
+        @if (expense().currency === 'INR') {
+        {{ currency }}{{ expense().amount | number: '1.0-2' }}
+        } @else {
+        {{ expense().amount | number: '1.0-2' }} {{ expense().currency }}
+        }
+      </strong>
+    </div>
+    @if (expense().currency !== 'INR') {
+    <div>
+      <span>Converted (INR)</span>
+      <strong>{{ currency }}{{ expense().amountInBase | number: '1.0-2' }}</strong>
+    </div>
+    <div>
+      <span>Exchange rate</span>
+      <strong>
+        1 {{ expense().currency }} = {{ currency }}{{ expense().exchangeRate | number: '1.2-4' }}
+        @if (expense().rateDate) {
+        (rate of {{ expense().rateDate }})
+        }
+      </strong>
+    </div>
+    }
     <div class="wide">
       <span>Description</span>
       <strong>{{ expense().description || '-' }}</strong>

@@ -22,5 +22,9 @@ public class RegisterRequest {
     @Size(min = 6)
     private String password;
 
+    // Ignored: public registration always creates an EMPLOYEE
     private Role role;
+
+    @Size(max = 50)
+    private String department;
 }

@@ -26,6 +26,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Column(length = 50)
+    private String department;
+
     @ManyToOne
     @JoinColumn(name = "manager_id")
     private User manager;

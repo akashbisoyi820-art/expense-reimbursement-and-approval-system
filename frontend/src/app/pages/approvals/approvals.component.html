@@ -62,9 +62,21 @@
       @for (e of pending(); track e.id) {
       <tr>
         <td>{{ e.id }}</td>
-        <td>{{ e.employeeName }}</td>
+        <td>
+          {{ e.employeeName }}
+          @if (e.employeeDepartment) {
+          <span class="dept-sub">{{ e.employeeDepartment }}</span>
+          }
+        </td>
         <td>{{ e.category }}</td>
-        <td>{{ e.amount }}</td>
+        <td>
+          @if (e.currency === 'INR') {
+          <span class="amount-main">{{ currency }}{{ e.amount | number: '1.0-2' }}</span>
+          } @else {
+          <span class="amount-main">{{ e.amount | number: '1.0-2' }} {{ e.currency }}</span>
+          <span class="amount-sub">&asymp; {{ currency }}{{ e.amountInBase | number: '1.0-2' }}</span>
+          }
+        </td>
         <td>{{ e.expenseDate }}</td>
         <td>{{ e.description }}</td>
         <td>
@@ -128,9 +140,21 @@
       @for (e of approved(); track e.id) {
       <tr>
         <td>{{ e.id }}</td>
-        <td>{{ e.employeeName }}</td>
+        <td>
+          {{ e.employeeName }}
+          @if (e.employeeDepartment) {
+          <span class="dept-sub">{{ e.employeeDepartment }}</span>
+          }
+        </td>
         <td>{{ e.category }}</td>
-        <td>{{ e.amount }}</td>
+        <td>
+          @if (e.currency === 'INR') {
+          <span class="amount-main">{{ currency }}{{ e.amount | number: '1.0-2' }}</span>
+          } @else {
+          <span class="amount-main">{{ e.amount | number: '1.0-2' }} {{ e.currency }}</span>
+          <span class="amount-sub">&asymp; {{ currency }}{{ e.amountInBase | number: '1.0-2' }}</span>
+          }
+        </td>
         <td>{{ e.expenseDate }}</td>
         <td>{{ e.description }}</td>
         <td>

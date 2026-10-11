@@ -34,6 +34,7 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
   role = localStorage.getItem('role');
   isAdmin = this.role === 'ADMIN';
 
+  // Symbol of the base currency. All totals are shown in INR.
   currency = '₹';
   placeholders = this.isAdmin ? [1, 2, 3, 4, 5] : [1, 2, 3, 4];
 
@@ -62,7 +63,7 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
   stats = computed<StatCard[]>(() => {
     const pending = this.pending();
     const withReceipt = pending.filter((e) => e.hasReceipt).length;
-    const pendingAmount = pending.reduce((sum, e) => sum + Number(e.amount), 0);
+    const pendingAmount = pending.reduce((sum, e) => sum + this.amountOf(e), 0);
     const employees = new Set(pending.map((e) => e.employeeEmail)).size;
 
     const cards: StatCard[] = [
@@ -83,7 +84,7 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
         icon: this.currency,
         value: pendingAmount,
         money: true,
-        hint: 'waiting for a decision',
+        hint: 'in INR, waiting for a decision',
         percent: null,
         attention: false,
         target: 'pending-card'
@@ -114,14 +115,14 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
 
     if (this.isAdmin) {
       const approved = this.approved();
-      const readyAmount = approved.reduce((sum, e) => sum + Number(e.amount), 0);
+      const readyAmount = approved.reduce((sum, e) => sum + this.amountOf(e), 0);
       cards.push({
         key: 'READY',
         label: 'Ready to Reimburse',
         icon: this.currency,
         value: readyAmount,
         money: true,
-        hint: `${approved.length} ${approved.length === 1 ? 'claim' : 'claims'} approved`,
+        hint: `${approved.length} ${approved.length === 1 ? 'claim' : 'claims'} approved, in INR`,
         percent: null,
         attention: approved.length > 0,
         target: 'approved-card'
@@ -137,6 +138,11 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     cancelAnimationFrame(this.frameId);
+  }
+
+  // Amount in INR (older claims fall back to their own amount)
+  private amountOf(e: Expense): number {
+    return Number(e.amountInBase ?? e.amount);
   }
 
   openDetails(expense: Expense) {

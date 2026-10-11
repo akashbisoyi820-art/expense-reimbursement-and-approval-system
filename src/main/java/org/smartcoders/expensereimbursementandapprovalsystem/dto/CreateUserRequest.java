@@ -25,4 +25,7 @@ public class CreateUserRequest {
 
     @NotNull
     private Role role;
+
+    @Size(max = 50)
+    private String department;
 }

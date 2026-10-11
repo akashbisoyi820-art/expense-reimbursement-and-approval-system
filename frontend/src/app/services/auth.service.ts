@@ -27,10 +27,10 @@ export class AuthService {
       );
   }
 
-  register(name: string, email: string, password: string): Observable<string> {
+  register(name: string, email: string, password: string, department: string): Observable<string> {
     return this.http.post(
       `${this.baseUrl}/register`,
-      { name, email, password },
+      { name, email, password, department },
       { responseType: 'text' }
     );
   }

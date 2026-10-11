@@ -10,8 +10,11 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './register.component.css'
 })
 export class RegisterComponent {
+  departments = ['Engineering', 'Finance', 'HR', 'Sales', 'Marketing', 'Operations', 'Other'];
+
   name = '';
   email = '';
+  department = 'Engineering';
   password = '';
   confirmPassword = '';
 
@@ -40,20 +43,22 @@ export class RegisterComponent {
 
     this.loading.set(true);
 
-    this.authService.register(this.name.trim(), this.email.trim(), this.password).subscribe({
-      next: () => {
-        this.loading.set(false);
-        this.success.set('Account created successfully. Redirecting to login...');
-        setTimeout(() => this.router.navigate(['/login']), 1500);
-      },
-      error: (err) => {
-        this.loading.set(false);
-        this.error.set(
-          err.status === 0
-            ? 'Cannot connect to the server. Please try again later.'
-            : 'Registration failed. This email may already be registered.'
-        );
-      }
-    });
+    this.authService
+      .register(this.name.trim(), this.email.trim(), this.password, this.department)
+      .subscribe({
+        next: () => {
+          this.loading.set(false);
+          this.success.set('Account created successfully. Redirecting to login...');
+          setTimeout(() => this.router.navigate(['/login']), 1500);
+        },
+        error: (err) => {
+          this.loading.set(false);
+          this.error.set(
+            err.status === 0
+              ? 'Cannot connect to the server. Please try again later.'
+              : 'Registration failed. This email may already be registered.'
+          );
+        }
+      });
   }
 }

@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { ClaimDetailsComponent } from '../../components/claim-details/claim-details.component';
 import { ClaimsSearchComponent } from '../../components/claims-search/claims-search.component';
 import { AuthService } from '../../services/auth.service';
-import { Expense, ExpenseService } from '../../services/expense.service';
+import { CurrencyInfo, Expense, ExpenseService, RateQuote } from '../../services/expense.service';
 
 interface StatCard {
   key: string;
@@ -26,6 +26,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   name = localStorage.getItem('name');
   role = localStorage.getItem('role');
 
+  // Symbol of the base currency. All totals are shown in INR.
   currency = '₹';
   categories = ['Travel', 'Food', 'Accommodation', 'Office Supplies', 'Other'];
   placeholders = [1, 2, 3, 4, 5];
@@ -34,10 +35,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private readonly allowedTypes = ['application/pdf', 'image/png', 'image/jpeg'];
 
   category = 'Travel';
+  claimCurrency = 'INR';
   amount: number | null = null;
   expenseDate = '';
   description = '';
   selectedFile: File | null = null;
+
+  currencies = signal<CurrencyInfo[]>([{ code: 'INR', name: 'Indian Rupee' }]);
+  rateQuote = signal<RateQuote | null>(null);
+  rateLoading = signal(false);
+  rateError = signal('');
+  private rateCache = new Map<string, RateQuote>();
 
   expenses = signal<Expense[]>([]);
   loaded = signal(false);
@@ -60,10 +68,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   stats = computed<StatCard[]>(() => {
     const list = this.expenses();
-    const total = list.reduce((sum, e) => sum + Number(e.amount), 0);
+    const total = list.reduce((sum, e) => sum + this.amountOf(e), 0);
 
     const make = (key: string, label: string, icon: string, items: Expense[]): StatCard => {
-      const amount = items.reduce((sum, e) => sum + Number(e.amount), 0);
+      const amount = items.reduce((sum, e) => sum + this.amountOf(e), 0);
       return {
         key,
         label,
@@ -91,10 +99,72 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadExpenses();
+    this.loadCurrencies();
   }
 
   ngOnDestroy() {
     cancelAnimationFrame(this.frameId);
+  }
+
+  // Amount in INR (older claims fall back to their own amount)
+  private amountOf(e: Expense): number {
+    return Number(e.amountInBase ?? e.amount);
+  }
+
+  private loadCurrencies() {
+    this.expenseService.getCurrencies().subscribe({
+      next: (list) => {
+        if (list.length > 0) {
+          this.currencies.set(list);
+        }
+      },
+      error: () => {
+        /* keep INR only */
+      }
+    });
+  }
+
+  setCurrency(code: string) {
+    this.claimCurrency = code;
+    this.rateError.set('');
+
+    if (code === 'INR') {
+      this.rateQuote.set(null);
+      return;
+    }
+
+    const cached = this.rateCache.get(code);
+    if (cached) {
+      this.rateQuote.set(cached);
+      return;
+    }
+
+    this.rateQuote.set(null);
+    this.rateLoading.set(true);
+
+    this.expenseService.getRate(code).subscribe({
+      next: (quote) => {
+        this.rateCache.set(code, quote);
+        if (this.claimCurrency === code) {
+          this.rateQuote.set(quote);
+        }
+        this.rateLoading.set(false);
+      },
+      error: () => {
+        this.rateLoading.set(false);
+        if (this.claimCurrency === code) {
+          this.rateError.set('Could not fetch the exchange rate. Try again, or choose INR.');
+        }
+      }
+    });
+  }
+
+  inrPreview(): number | null {
+    const quote = this.rateQuote();
+    if (!this.amount || !quote) {
+      return null;
+    }
+    return Math.round(this.amount * quote.rate * 100) / 100;
   }
 
   openDetails(expense: Expense) {
@@ -220,6 +290,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       .createExpense({
         category: this.category,
         amount: this.amount,
+        currency: this.claimCurrency,
         expenseDate: this.expenseDate,
         description: this.description
       })
@@ -252,7 +323,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
             }
           });
         },
-        error: () => this.error.set('Failed to submit expense')
+        error: (err) => {
+          this.error.set(
+            err.status === 503
+              ? 'The exchange rate service is unavailable right now. Try again, or choose INR.'
+              : 'Failed to submit expense'
+          );
+        }
       });
   }
 

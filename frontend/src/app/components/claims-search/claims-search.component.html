@@ -52,11 +52,11 @@
     <input type="date" [(ngModel)]="to" />
   </label>
   <label>
-    <span>Min amount</span>
+    <span>Min amount ({{ currency }} INR)</span>
     <input type="number" min="0" placeholder="0" [(ngModel)]="minAmount" />
   </label>
   <label>
-    <span>Max amount</span>
+    <span>Max amount ({{ currency }} INR)</span>
     <input type="number" min="0" placeholder="Any" [(ngModel)]="maxAmount" />
   </label>
 
@@ -113,10 +113,22 @@
     <tr>
       <td>{{ e.id }}</td>
       @if (showEmployee()) {
-      <td>{{ e.employeeName }}</td>
+      <td>
+        {{ e.employeeName }}
+        @if (e.employeeDepartment) {
+        <span class="dept-sub">{{ e.employeeDepartment }}</span>
+        }
+      </td>
       }
       <td>{{ e.category }}</td>
-      <td>{{ currency }}{{ e.amount | number: '1.0-2' }}</td>
+      <td>
+        @if (e.currency === 'INR') {
+        <span class="amount-main">{{ currency }}{{ e.amount | number: '1.0-2' }}</span>
+        } @else {
+        <span class="amount-main">{{ e.amount | number: '1.0-2' }} {{ e.currency }}</span>
+        <span class="amount-sub">&asymp; {{ currency }}{{ e.amountInBase | number: '1.0-2' }}</span>
+        }
+      </td>
       <td>{{ e.expenseDate }}</td>
       <td>{{ e.description || '-' }}</td>
       <td><span class="badge" [class]="e.status">{{ e.status }}</span></td>

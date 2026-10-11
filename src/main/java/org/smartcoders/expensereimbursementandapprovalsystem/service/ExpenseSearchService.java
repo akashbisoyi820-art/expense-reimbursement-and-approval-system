@@ -1,5 +1,6 @@
 package org.smartcoders.expensereimbursementandapprovalsystem.service;
 
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -75,6 +76,11 @@ public class ExpenseSearchService {
 
     private Sort buildSort(String sortBy, String direction) {
         String field = SORTABLE_FIELDS.contains(sortBy) ? sortBy : "expenseDate";
+        // Amounts are compared in INR, so claims in different currencies sort correctly
+        if (field.equals("amount")) {
+            field = "amountInBase";
+        }
+
         Sort.Direction dir = "asc".equalsIgnoreCase(direction)
                 ? Sort.Direction.ASC
                 : Sort.Direction.DESC;
@@ -121,13 +127,18 @@ public class ExpenseSearchService {
                 predicates.add(cb.lessThanOrEqualTo(root.<LocalDate>get("expenseDate"), to));
             }
 
+            // Amount filters work on the INR amount (older claims fall back to their own amount)
+            Expression<BigDecimal> inBase = cb.coalesce(
+                    root.<BigDecimal>get("amountInBase"),
+                    root.<BigDecimal>get("amount"));
+
             BigDecimal min = c.minAmount();
             if (min != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.<BigDecimal>get("amount"), min));
+                predicates.add(cb.greaterThanOrEqualTo(inBase, min));
             }
             BigDecimal max = c.maxAmount();
             if (max != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.<BigDecimal>get("amount"), max));
+                predicates.add(cb.lessThanOrEqualTo(inBase, max));
             }
 
             if (StringUtils.hasText(c.keyword())) {
