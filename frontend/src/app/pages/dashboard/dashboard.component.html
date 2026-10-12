@@ -87,8 +87,16 @@
     @if (error()) { <p class="error">{{ error() }}</p> }
   </div>
 
+
+  <div class="card">
+    <app-analytics-charts
+      heading="Spending Overview"
+      [refresh]="refreshKey()"
+      (slice)="claimsSearch.applyExternal($event); tableCard.scrollIntoView()" />
+  </div>
   <div class="card" #tableCard>
     <app-claims-search
+      #claimsSearch
       heading="My Expenses"
       [allowUpload]="true"
       [refresh]="refreshKey()"

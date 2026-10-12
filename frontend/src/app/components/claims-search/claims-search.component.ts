@@ -8,6 +8,15 @@ import {
   PageResult
 } from '../../services/expense.service';
 
+// Filters that another component (such as the charts) can apply to the list
+export interface ExternalFilter {
+  status?: string;
+  category?: string;
+  department?: string;
+  from?: string;
+  to?: string;
+}
+
 @Component({
   selector: 'app-claims-search',
   imports: [FormsModule, DecimalPipe],
@@ -27,6 +36,16 @@ export class ClaimsSearchComponent {
 
   statuses = ['ALL', 'PENDING', 'APPROVED', 'REJECTED', 'REIMBURSED'];
   categories = ['Travel', 'Food', 'Accommodation', 'Office Supplies', 'Other'];
+  departments = [
+    'Engineering',
+    'Finance',
+    'HR',
+    'Sales',
+    'Marketing',
+    'Operations',
+    'Other',
+    'Unassigned'
+  ];
   pageSizes = [5, 10, 20, 50];
   currency = '₹';
 
@@ -34,6 +53,7 @@ export class ClaimsSearchComponent {
   keyword = '';
   category = 'ALL';
   employee = '';
+  department = '';
   from = '';
   to = '';
   minAmount: number | null = null;
@@ -75,6 +95,7 @@ export class ClaimsSearchComponent {
     let count = 0;
     if (a.category && a.category !== 'ALL') count++;
     if (a.employee && a.employee.trim()) count++;
+    if (a.department && a.department.trim()) count++;
     if (a.from) count++;
     if (a.to) count++;
     if (a.minAmount !== null && a.minAmount !== undefined) count++;
@@ -107,6 +128,7 @@ export class ClaimsSearchComponent {
       status: this.status(),
       category: this.category,
       employee: this.employee,
+      department: this.department,
       from: this.from,
       to: this.to,
       minAmount: this.minAmount,
@@ -120,6 +142,7 @@ export class ClaimsSearchComponent {
     this.keyword = '';
     this.category = 'ALL';
     this.employee = '';
+    this.department = '';
     this.from = '';
     this.to = '';
     this.minAmount = null;
@@ -128,6 +151,28 @@ export class ClaimsSearchComponent {
     this.statusChange.emit('ALL');
     this.sortBy.set('expenseDate');
     this.direction.set('desc');
+    this.search();
+  }
+
+  // Called by the parent page when a graph slice or bar is clicked
+  applyExternal(filter: ExternalFilter) {
+    this.keyword = '';
+    this.employee = '';
+    this.minAmount = null;
+    this.maxAmount = null;
+    this.category = filter.category ?? 'ALL';
+    this.department = filter.department ?? '';
+    this.from = filter.from ?? '';
+    this.to = filter.to ?? '';
+
+    const status = filter.status ?? 'ALL';
+    this.status.set(status);
+    this.statusChange.emit(status);
+
+    // Show the filters that were applied
+    if (this.category !== 'ALL' || this.department || this.from || this.to) {
+      this.showAdvanced.set(true);
+    }
     this.search();
   }
 

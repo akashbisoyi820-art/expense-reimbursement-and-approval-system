@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ClaimDetailsComponent } from '../../components/claim-details/claim-details.component';
 import { ClaimsSearchComponent } from '../../components/claims-search/claims-search.component';
+import { AnalyticsChartsComponent } from '../../components/analytics-charts/analytics-charts.component';
 import { AuthService } from '../../services/auth.service';
 import { AuditEntry, Expense, ExpenseService } from '../../services/expense.service';
 
@@ -21,7 +22,7 @@ interface StatCard {
 
 @Component({
   selector: 'app-approvals',
-  imports: [FormsModule, DecimalPipe, DatePipe, ClaimDetailsComponent, ClaimsSearchComponent],
+  imports: [FormsModule, DecimalPipe, DatePipe, ClaimDetailsComponent, ClaimsSearchComponent, AnalyticsChartsComponent],
   templateUrl: './approvals.component.html',
   styleUrl: './approvals.component.css'
 })
@@ -47,6 +48,21 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
 
   rejectingId = signal<number | null>(null);
   rejectReason = '';
+
+  // Payment form (shown when the admin presses Reimburse)
+  paymentMethods = [
+    { value: 'BANK_TRANSFER', label: 'Bank transfer' },
+    { value: 'UPI', label: 'UPI' },
+    { value: 'CASH', label: 'Cash' },
+    { value: 'CHEQUE', label: 'Cheque' }
+  ];
+  payingClaim = signal<Expense | null>(null);
+  payError = signal('');
+  paymentMethod = 'BANK_TRANSFER';
+  referenceNo = '';
+  paidOn = '';
+  paymentNote = '';
+  today = this.todayIso();
 
   refreshKey = signal(0);
   selectedClaim = signal<Expense | null>(null);
@@ -143,6 +159,13 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
   // Amount in INR (older claims fall back to their own amount)
   private amountOf(e: Expense): number {
     return Number(e.amountInBase ?? e.amount);
+  }
+
+  private todayIso(): string {
+    const d = new Date();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${month}-${day}`;
   }
 
   openDetails(expense: Expense) {
@@ -280,6 +303,7 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
   startReject(id: number) {
     this.message.set('');
     this.error.set('');
+    this.cancelPay();
     this.rejectReason = '';
     this.rejectingId.set(id);
   }
@@ -311,16 +335,80 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
     });
   }
 
-  reimburse(id: number) {
+  startPay(expense: Expense) {
     this.message.set('');
     this.error.set('');
-    this.expenseService.reimburse(id).subscribe({
-      next: () => {
-        this.message.set(`Expense #${id} reimbursed`);
-        this.afterAction();
-      },
-      error: () => this.error.set('Failed to reimburse expense')
-    });
+    this.payError.set('');
+    this.cancelReject();
+
+    this.paymentMethod = 'BANK_TRANSFER';
+    this.referenceNo = '';
+    this.paidOn = this.todayIso();
+    this.paymentNote = '';
+    this.payingClaim.set(expense);
+
+    setTimeout(
+      () =>
+        document.getElementById('pay-box')?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
+      60
+    );
+  }
+
+  cancelPay() {
+    this.payingClaim.set(null);
+    this.payError.set('');
+  }
+
+  confirmPay() {
+    const claim = this.payingClaim();
+    if (!claim) {
+      return;
+    }
+
+    const reference = this.referenceNo.trim();
+
+    if (this.paymentMethod !== 'CASH' && !reference) {
+      this.payError.set('Please enter the reference number (transaction id, UTR or cheque number)');
+      return;
+    }
+    if (!this.paidOn) {
+      this.payError.set('Please choose the payment date');
+      return;
+    }
+    if (this.paidOn > this.todayIso()) {
+      this.payError.set('Payment date cannot be in the future');
+      return;
+    }
+    if (claim.expenseDate && this.paidOn < claim.expenseDate) {
+      this.payError.set('Payment date cannot be before the expense date');
+      return;
+    }
+
+    this.payError.set('');
+    this.message.set('');
+    this.error.set('');
+
+    this.expenseService
+      .reimburse(claim.id, {
+        paymentMethod: this.paymentMethod,
+        referenceNo: reference || undefined,
+        paidOn: this.paidOn,
+        note: this.paymentNote.trim() || undefined
+      })
+      .subscribe({
+        next: () => {
+          this.message.set(`Expense #${claim.id} reimbursed`);
+          this.cancelPay();
+          this.afterAction();
+        },
+        error: (err) => {
+          this.payError.set(
+            err.status === 400
+              ? 'The payment details were not accepted, or this claim is no longer approved. Please check and try again.'
+              : 'Failed to record the payment'
+          );
+        }
+      });
   }
 
   logout() {

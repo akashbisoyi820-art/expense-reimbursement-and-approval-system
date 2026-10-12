@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ClaimDetailsComponent } from '../../components/claim-details/claim-details.component';
 import { ClaimsSearchComponent } from '../../components/claims-search/claims-search.component';
+import { AnalyticsChartsComponent } from '../../components/analytics-charts/analytics-charts.component';
 import { AuthService } from '../../services/auth.service';
 import { CurrencyInfo, Expense, ExpenseService, RateQuote } from '../../services/expense.service';
 
@@ -18,7 +19,7 @@ interface StatCard {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [FormsModule, DecimalPipe, ClaimDetailsComponent, ClaimsSearchComponent],
+  imports: [FormsModule, DecimalPipe, ClaimDetailsComponent, ClaimsSearchComponent, AnalyticsChartsComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })

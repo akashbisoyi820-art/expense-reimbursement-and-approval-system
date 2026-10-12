@@ -11,7 +11,13 @@ import {
   viewChild
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AuditEntry, ClaimComment, Expense, ExpenseService } from '../../services/expense.service';
+import {
+  AuditEntry,
+  ClaimComment,
+  Expense,
+  ExpenseService,
+  PaymentRecord
+} from '../../services/expense.service';
 
 type Tab = 'timeline' | 'comments';
 
@@ -30,6 +36,7 @@ export class ClaimDetailsComponent {
 
   history = signal<AuditEntry[]>([]);
   comments = signal<ClaimComment[]>([]);
+  payment = signal<PaymentRecord | null>(null);
   loadingHistory = signal(true);
   loadingComments = signal(true);
   error = signal('');
@@ -40,8 +47,8 @@ export class ClaimDetailsComponent {
 
   constructor(private expenseService: ExpenseService) {
     effect(() => {
-      const id = this.expense().id;
-      untracked(() => this.loadAll(id));
+      const claim = this.expense();
+      untracked(() => this.loadAll(claim.id, claim.status));
     });
   }
 
@@ -76,6 +83,10 @@ export class ClaimDetailsComponent {
     }
   }
 
+  methodLabel(method: string): string {
+    return method.charAt(0) + method.slice(1).toLowerCase().replace('_', ' ');
+  }
+
   initial(name: string): string {
     return name ? name.charAt(0).toUpperCase() : '?';
   }
@@ -103,10 +114,11 @@ export class ClaimDetailsComponent {
     });
   }
 
-  private loadAll(id: number) {
+  private loadAll(id: number, status: string) {
     this.error.set('');
     this.loadingHistory.set(true);
     this.loadingComments.set(true);
+    this.payment.set(null);
 
     this.expenseService.getHistory(id).subscribe({
       next: (data) => {
@@ -132,6 +144,16 @@ export class ClaimDetailsComponent {
         this.error.set('Could not load the comments');
       }
     });
+
+    // Only reimbursed claims can have a payment record
+    if (status === 'REIMBURSED') {
+      this.expenseService.getPayment(id).subscribe({
+        next: (record) => this.payment.set(record),
+        error: () => {
+          /* the payment block is optional, so a failure just hides it */
+        }
+      });
+    }
   }
 
   private scrollTo(where: 'top' | 'bottom') {

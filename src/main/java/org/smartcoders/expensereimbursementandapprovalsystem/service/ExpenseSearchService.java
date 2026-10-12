@@ -118,6 +118,20 @@ public class ExpenseSearchService {
                         cb.like(cb.lower(user.<String>get("email")), like, '\\')));
             }
 
+            if (privileged && StringUtils.hasText(c.department())) {
+                String department = c.department().trim();
+                if (department.equalsIgnoreCase("Unassigned")) {
+                    // Users without a department
+                    predicates.add(cb.or(
+                            cb.isNull(user.<String>get("department")),
+                            cb.equal(cb.trim(user.<String>get("department")), "")));
+                } else {
+                    predicates.add(cb.equal(
+                            cb.lower(user.<String>get("department")),
+                            department.toLowerCase()));
+                }
+            }
+
             LocalDate from = c.from();
             if (from != null) {
                 predicates.add(cb.greaterThanOrEqualTo(root.<LocalDate>get("expenseDate"), from));

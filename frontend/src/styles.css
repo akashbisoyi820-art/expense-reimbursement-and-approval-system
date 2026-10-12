@@ -761,4 +761,75 @@ tbody tr:nth-child(n+8) { animation-delay: 0.5s; }
   html[data-theme='dark'] .fx-preview strong { color: #9be3bd; }
   html[data-theme='dark'] .fx-error { color: #ffa08c;
   }
+
+  /* ============================================================
+   PAYMENT RECORD
+   ============================================================ */
+  .pay-box {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px;
+    border-radius: 14px;
+    background: rgba(242, 169, 59, 0.12);
+    border: 1px solid rgba(217, 138, 29, 0.45);
+    animation: fadeUp 0.4s ease backwards;
+  }
+  .pay-box h4 { margin: 0; color: #8a5300; }
+  .pay-amount { margin: 0; font-size: 14px; }
+  .pay-amount strong { font-size: 16px; color: var(--forest); }
+  .pay-amount span { color: var(--muted); }
+
+  .pay-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 12px;
+  }
+  .pay-grid label { display: flex; flex-direction: column; gap: 4px; }
+  .pay-grid label.wide { grid-column: 1 / -1; }
+  .pay-grid label span {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .pay-hint { margin: 0; font-size: 12px; color: var(--muted); }
+  .pay-box .actions { display: flex; gap: 8px; }
+
+  .pay-summary small {
+    display: block;
+    margin-top: 2px;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--muted);
+  }
+
+  .feed .feed-note.note-ok {
+    border-left-color: var(--gold-dark);
+    background: rgba(217, 138, 29, 0.09);
+  }
+
+  html[data-theme='dark'] .pay-box {
+    background: rgba(242, 169, 59, 0.1);
+    border-color: rgba(242, 169, 59, 0.4);
+  }
+  html[data-theme='dark'] .pay-box h4 { color: #f7c978; }
+  html[data-theme='dark'] .pay-amount strong { color: #9be3bd; }
+  html[data-theme='dark'] .feed .feed-note.note-ok { background: rgba(242, 169, 59, 0.12);
+  }
+
+  /* ============================================================
+   CHARTS
+   ============================================================ */
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+
+  html[data-theme='dark'] .an-tile { background: rgba(255, 255, 255, 0.06); }
+  html[data-theme='dark'] .an-card { background: rgba(255, 255, 255, 0.05); }
+  html[data-theme='dark'] .an-skel {
+    background: linear-gradient(100deg, rgba(255, 255, 255, 0.05) 30%, rgba(255, 255, 255, 0.14) 50%, rgba(255, 255, 255, 0.05) 70%);
+    background-size: 300% 100%;
+  }
 }

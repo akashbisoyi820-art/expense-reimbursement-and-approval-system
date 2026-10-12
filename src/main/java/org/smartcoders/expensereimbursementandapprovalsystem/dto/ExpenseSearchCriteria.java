@@ -10,6 +10,7 @@ public record ExpenseSearchCriteria(
         ExpenseStatus status,
         String category,
         String employee,
+        String department,
         LocalDate from,
         LocalDate to,
         BigDecimal minAmount,

@@ -168,18 +168,83 @@
           <button class="link-btn" (click)="openDetails(e)">Details</button>
         </td>
         <td class="actions">
-          <button class="reimburse" (click)="reimburse(e.id)">Reimburse</button>
+          <button class="reimburse" (click)="startPay(e)">Reimburse</button>
         </td>
       </tr>
       }
       </tbody>
     </table>
     }
+
+    @if (payingClaim(); as claim) {
+    <div class="pay-box" id="pay-box">
+      <h4>Record payment for claim #{{ claim.id }}</h4>
+
+      <p class="pay-amount">
+        Pay <strong>{{ currency }}{{ claim.amountInBase | number: '1.2-2' }}</strong>
+        to {{ claim.employeeName }}
+        @if (claim.currency !== 'INR') {
+        <span>(the claim was {{ claim.amount | number: '1.2-2' }} {{ claim.currency }})</span>
+        }
+      </p>
+
+      <div class="pay-grid">
+        <label>
+          <span>Payment method</span>
+          <select [(ngModel)]="paymentMethod">
+            @for (m of paymentMethods; track m.value) {
+            <option [value]="m.value">{{ m.label }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          <span>Reference no. {{ paymentMethod === 'CASH' ? '(optional)' : '(required)' }}</span>
+          <input
+            type="text"
+            maxlength="60"
+            placeholder="Transaction id, UTR or cheque no."
+            [(ngModel)]="referenceNo" />
+        </label>
+
+        <label>
+          <span>Paid on</span>
+          <input type="date" [max]="today" [(ngModel)]="paidOn" />
+        </label>
+
+        <label class="wide">
+          <span>Note (optional)</span>
+          <input type="text" maxlength="255" [(ngModel)]="paymentNote" />
+        </label>
+      </div>
+
+      <p class="pay-hint">
+        Enter only the transaction id, UTR or cheque number. Never enter a bank account number.
+      </p>
+
+      @if (payError()) {
+      <p class="error">{{ payError() }}</p>
+      }
+
+      <div class="actions">
+        <button class="reimburse" (click)="confirmPay()">Confirm payment</button>
+        <button class="cancel" (click)="cancelPay()">Cancel</button>
+      </div>
+    </div>
+    }
   </div>
   }
 
-  <div class="card" id="all-card">
+  <div class="card" id="charts-card">
+    <app-analytics-charts
+      heading="Spending Overview"
+      [showDepartment]="true"
+      [refresh]="refreshKey()"
+      (slice)="claimsSearch.applyExternal($event); allCard.scrollIntoView()" />
+  </div>
+  <div class="card" id="all-card" #allCard>
     <app-claims-search
+      #claimsSearch
       heading="All Claims"
       [showEmployee]="true"
       [refresh]="refreshKey()"
@@ -203,8 +268,8 @@
           <span class="role-chip">{{ a.actorRole }}</span>
           {{ activityLabel(a) }}
           <span class="feed-claim">claim #{{ a.expenseId }}</span>
-          @if (a.action === 'REJECTED' && a.details) {
-          <div class="feed-note">{{ a.details }}</div>
+          @if ((a.action === 'REJECTED' || a.action === 'REIMBURSED') && a.details) {
+          <div class="feed-note" [class.note-ok]="a.action === 'REIMBURSED'">{{ a.details }}</div>
           }
         </div>
         <div class="feed-time">{{ a.createdAt | date: 'dd MMM, hh:mm a' }}</div>

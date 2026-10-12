@@ -28,6 +28,41 @@ export interface ExpenseRequest {
   description: string;
 }
 
+export interface PaymentRequest {
+  paymentMethod: string;
+  referenceNo?: string;
+  paidOn?: string;
+  note?: string;
+}
+
+export interface PaymentRecord {
+  id: number;
+  expenseId: number;
+  paymentMethod: string;
+  referenceNo: string | null;
+  paidOn: string;
+  amount: number;
+  note: string | null;
+  paidByName: string;
+  createdAt: string;
+}
+
+export interface ChartPoint {
+  label: string;
+  total: number;
+  count: number;
+}
+
+export interface Analytics {
+  currency: string;
+  grandTotal: number;
+  claimCount: number;
+  byCategory: ChartPoint[];
+  byMonth: ChartPoint[];
+  byDepartment: ChartPoint[];
+  byStatus: ChartPoint[];
+}
+
 export interface CurrencyInfo {
   code: string;
   name: string;
@@ -74,6 +109,7 @@ export interface ExpenseFilters {
   status?: string;
   category?: string;
   employee?: string;
+  department?: string;
   from?: string;
   to?: string;
   minAmount?: number | null;
@@ -121,6 +157,7 @@ export class ExpenseService {
       ['status', filters.status && filters.status !== 'ALL' ? filters.status : undefined],
       ['category', filters.category && filters.category !== 'ALL' ? filters.category : undefined],
       ['employee', filters.employee?.trim()],
+      ['department', filters.department?.trim()],
       ['from', filters.from],
       ['to', filters.to],
       ['minAmount', filters.minAmount],
@@ -144,8 +181,13 @@ export class ExpenseService {
     return this.http.put<Expense>(`${this.baseUrl}/${id}/reject`, { reason });
   }
 
-  reimburse(id: number): Observable<Expense> {
-    return this.http.put<Expense>(`${this.baseUrl}/${id}/reimburse`, {});
+  reimburse(id: number, payment: PaymentRequest): Observable<Expense> {
+    return this.http.put<Expense>(`${this.baseUrl}/${id}/reimburse`, payment);
+  }
+
+  // The server answers 204 (no body) when no payment is recorded, which arrives as null
+  getPayment(id: number): Observable<PaymentRecord | null> {
+    return this.http.get<PaymentRecord | null>(`${this.baseUrl}/${id}/payment`);
   }
 
   uploadReceipt(id: number, file: File): Observable<Expense> {
@@ -189,5 +231,19 @@ export class ExpenseService {
   getRate(currency: string): Observable<RateQuote> {
     const params = new HttpParams().set('currency', currency);
     return this.http.get<RateQuote>(`${this.apiRoot}/currencies/rate`, { params });
+  }
+
+  getAnalytics(status?: string, from?: string, to?: string): Observable<Analytics> {
+    let params = new HttpParams();
+    if (status && status !== 'ALL') {
+      params = params.set('status', status);
+    }
+    if (from) {
+      params = params.set('from', from);
+    }
+    if (to) {
+      params = params.set('to', to);
+    }
+    return this.http.get<Analytics>(`${this.apiRoot}/analytics/summary`, { params });
   }
 }

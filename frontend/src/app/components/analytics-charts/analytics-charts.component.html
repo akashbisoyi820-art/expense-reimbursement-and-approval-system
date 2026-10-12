@@ -1,0 +1,116 @@
+<h3>{{ heading() }}</h3>
+
+<div class="an-controls">
+  <div class="an-chips">
+    @for (r of ranges; track r.key) {
+    <button class="filter-btn" [class.active]="range() === r.key" (click)="setRange(r.key)">
+      {{ r.label }}
+    </button>
+    }
+  </div>
+
+  <div class="an-fields">
+    <label>
+      <span>Status</span>
+      <select [ngModel]="statusFilter" (ngModelChange)="statusFilter = $event; apply()">
+        @for (s of statuses; track s) {
+        <option [value]="s">{{ s === 'ALL' ? 'All statuses' : s }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      <span>From</span>
+      <input type="date" [(ngModel)]="from" (change)="onDateChange()" />
+    </label>
+    <label>
+      <span>To</span>
+      <input type="date" [(ngModel)]="to" (change)="onDateChange()" />
+    </label>
+    <button (click)="apply()">Apply</button>
+  </div>
+</div>
+
+@if (error()) {
+<p class="error">{{ error() }}</p>
+}
+
+@if (data(); as d) {
+<div class="an-wrap" [class.loading]="loading()">
+  <div class="an-tiles">
+    <div class="an-tile">
+      <span>Total claimed</span>
+      <strong>{{ currency }}{{ d.grandTotal | number: '1.0-0' }}</strong>
+      <small>in INR</small>
+    </div>
+    <div class="an-tile">
+      <span>Claims</span>
+      <strong>{{ d.claimCount }}</strong>
+      <small>in this view</small>
+    </div>
+    <div class="an-tile">
+      <span>Average claim</span>
+      <strong>{{ currency }}{{ average() | number: '1.0-0' }}</strong>
+      <small>per claim</small>
+    </div>
+    <div class="an-tile">
+      <span>Top category</span>
+      @if (topCategory(); as top) {
+      <strong>{{ top.label }}</strong>
+      <small>{{ currency }}{{ top.total | number: '1.0-0' }}</small>
+      } @else {
+      <strong>-</strong>
+      }
+    </div>
+    @if (showDepartment()) {
+    <div class="an-tile">
+      <span>Top department</span>
+      @if (topDepartment(); as top) {
+      <strong>{{ top.label }}</strong>
+      <small>{{ currency }}{{ top.total | number: '1.0-0' }}</small>
+      } @else {
+      <strong>-</strong>
+      }
+    </div>
+    }
+  </div>
+
+  @if (d.claimCount === 0) {
+  <div class="an-empty">No claims found for this period. Try a different range or status.</div>
+  } @else {
+  <div class="an-grid">
+    <div class="an-card">
+      <h4>By category</h4>
+      <div class="an-box"><canvas #catCanvas></canvas></div>
+      <p class="an-hint">Click a slice to see those claims</p>
+    </div>
+
+    <div class="an-card">
+      <h4>By status</h4>
+      <div class="an-box"><canvas #statusCanvas></canvas></div>
+      <p class="an-hint">Click a slice to see those claims</p>
+    </div>
+
+    <div class="an-card wide">
+      <h4>Month-wise spending</h4>
+      <div class="an-box"><canvas #monthCanvas></canvas></div>
+      <p class="an-hint">Click a bar to see that month's claims</p>
+    </div>
+
+    @if (showDepartment()) {
+    <div class="an-card wide">
+      <h4>Department-wise spending</h4>
+      <div class="an-box"><canvas #deptCanvas></canvas></div>
+      <p class="an-hint">Click a bar to see that department's claims</p>
+    </div>
+    }
+  </div>
+  }
+</div>
+} @else {
+<div class="an-tiles">
+  <div class="an-skel"></div>
+  <div class="an-skel"></div>
+  <div class="an-skel"></div>
+  <div class="an-skel"></div>
+</div>
+}

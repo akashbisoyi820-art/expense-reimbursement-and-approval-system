@@ -30,6 +30,7 @@ public class ExpenseSearchController {
             @RequestParam(required = false) ExpenseStatus status,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String employee,
+            @RequestParam(required = false) String department,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(required = false)
@@ -43,7 +44,8 @@ public class ExpenseSearchController {
             Authentication authentication) {
 
         ExpenseSearchCriteria criteria = new ExpenseSearchCriteria(
-                keyword, status, category, employee, from, to, minAmount, maxAmount);
+                keyword, status, category, employee, department,
+                from, to, minAmount, maxAmount);
 
         return ResponseEntity.ok(expenseSearchService.search(
                 authentication.getName(), isPrivileged(authentication),

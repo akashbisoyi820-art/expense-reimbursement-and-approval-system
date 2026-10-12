@@ -4,9 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.smartcoders.expensereimbursementandapprovalsystem.dto.AuditLogResponse;
 import org.smartcoders.expensereimbursementandapprovalsystem.dto.ExpenseRequest;
 import org.smartcoders.expensereimbursementandapprovalsystem.dto.ExpenseResponse;
+import org.smartcoders.expensereimbursementandapprovalsystem.dto.PaymentRequest;
+import org.smartcoders.expensereimbursementandapprovalsystem.dto.PaymentResponse;
 import org.smartcoders.expensereimbursementandapprovalsystem.entity.AuditAction;
 import org.smartcoders.expensereimbursementandapprovalsystem.entity.Expense;
 import org.smartcoders.expensereimbursementandapprovalsystem.entity.ExpenseStatus;
+import org.smartcoders.expensereimbursementandapprovalsystem.entity.Payment;
 import org.smartcoders.expensereimbursementandapprovalsystem.entity.User;
 import org.smartcoders.expensereimbursementandapprovalsystem.repository.ExpenseRepository;
 import org.smartcoders.expensereimbursementandapprovalsystem.repository.UserRepository;
@@ -20,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +34,7 @@ public class ExpenseService {
     private final ReceiptStorageService receiptStorageService;
     private final AuditService auditService;
     private final ExchangeRateService exchangeRateService;
+    private final PaymentService paymentService;
 
     public record ReceiptFile(Resource resource, String contentType) {}
 
@@ -118,17 +123,21 @@ public class ExpenseService {
         return toResponse(saved);
     }
 
+    // The status change and the payment record are saved together or not at all
     @Transactional
-    public ExpenseResponse reimburse(Long id, String actorEmail) {
+    public ExpenseResponse reimburse(Long id, PaymentRequest request, String actorEmail) {
         User actor = getUser(actorEmail);
         Expense expense = getExpense(id);
         requireStatus(expense, ExpenseStatus.APPROVED);
+
+        Payment payment = paymentService.record(expense, request, actor);
 
         ExpenseStatus from = expense.getStatus();
         expense.setStatus(ExpenseStatus.REIMBURSED);
         Expense saved = expenseRepository.save(expense);
 
-        auditService.log(id, AuditAction.REIMBURSED, actor, from, ExpenseStatus.REIMBURSED, null);
+        auditService.log(id, AuditAction.REIMBURSED, actor, from, ExpenseStatus.REIMBURSED,
+                paymentService.describe(payment));
         return toResponse(saved);
     }
 
@@ -169,6 +178,12 @@ public class ExpenseService {
     public List<AuditLogResponse> getHistory(String email, boolean privileged, Long id) {
         requireAccessibleExpense(id, email, privileged);
         return auditService.getHistory(id);
+    }
+
+    // Empty when the claim was reimbursed before payments were recorded, or not paid yet
+    public Optional<PaymentResponse> getPayment(String email, boolean privileged, Long id) {
+        requireAccessibleExpense(id, email, privileged);
+        return paymentService.getForExpense(id);
     }
 
     // Owner, managers and admins can access a claim

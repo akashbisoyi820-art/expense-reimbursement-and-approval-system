@@ -28,12 +28,15 @@ A full-stack web application for managing office expense claims. Employees submi
 - Create Manager and Admin accounts
 - Recent Activity feed of every action across all claims
 - All Claims search with an employee filter, sorting and pagination
+- Record the payment when reimbursing a claim: method (bank transfer, UPI, cash, cheque), reference number and date. Only the transaction reference is stored, never a bank account number.
 
 **General**
 - JWT authentication and role-based access control
 - Each page has its own animated background, animated screen transitions and button click effects
 - Dark and light theme with the choice saved in the browser
 - All totals, summary cards and amount filters use the INR-converted amount, so claims in different currencies can be compared
+- Spending Overview charts (by category, status, month and, for managers and admins, by department), with date and status filters. Clicking a slice or bar opens the matching claims.
+- The claim details panel shows the payment record of a reimbursed claim
 
 ## Workflow
 
@@ -50,6 +53,7 @@ PENDING -> REJECTED (with a reason)
 | Frontend | Angular, TypeScript                                                          |
 | Database | MySQL 8                                                                      |
 | Exchange rates | Frankfurter API (https://api.frankfurter.dev, free, no key), cached for 6 hours |
+| Charts   | Chart.js 4 |
 
 ## Project Structure
 
@@ -64,34 +68,36 @@ PENDING -> REJECTED (with a reason)
 
 ## API Endpoints
 
-| Method | Endpoint                      | Access                | Description                    |
-|--------|-------------------------------|-----------------------|--------------------------------|
-| POST   | /api/auth/register            | Public                | Create an employee account     |
-| POST   | /api/auth/login               | Public                | Log in and receive a JWT       |
-| POST   | /api/admin/users              | Admin                 | Create a user with any role    |
-| POST   | /api/expenses                 | Any logged-in user    | Submit an expense              |
-| GET    | /api/expenses/my              | Any logged-in user    | List my expenses               |
-| GET    | /api/expenses/pending         | Manager, Admin        | List pending expenses          |
-| GET    | /api/expenses/approved        | Admin                 | List approved expenses         |
-| PUT    | /api/expenses/{id}/approve    | Manager, Admin        | Approve an expense             |
-| PUT    | /api/expenses/{id}/reject     | Manager, Admin        | Reject with a reason           |
-| PUT    | /api/expenses/{id}/reimburse  | Admin                 | Mark as reimbursed             |
-| POST   | /api/expenses/{id}/receipt    | Expense owner         | Upload a receipt               |
-| GET    | /api/expenses/{id}/receipt    | Owner, Manager, Admin | View a receipt                 |
-| GET    | /api/expenses/{id}/history    | Owner, Manager, Admin | Audit trail of a claim         |
-| GET    | /api/expenses/{id}/comments   | Owner, Manager, Admin | List comments on a claim       |
-| POST   | /api/expenses/{id}/comments   | Owner, Manager, Admin | Add a comment                  |
-| GET    | /api/audit/recent             | Admin                 | Recent activity across claims  |
-| GET    | /api/expenses/search          | Any logged-in user    | Search, filter, sort and paginate claims (employees see only their own) |
-| GET    | /api/currencies               | Any logged-in user    | List supported currencies      |
-| GET    | /api/currencies/rate          | Any logged-in user    | Current rate of a currency in INR |
+| Method | Endpoint                      | Access                | Description                                                                    |
+|--------|-------------------------------|-----------------------|--------------------------------------------------------------------------------|
+| POST   | /api/auth/register            | Public                | Create an employee account                                                     |
+| POST   | /api/auth/login               | Public                | Log in and receive a JWT                                                       |
+| POST   | /api/admin/users              | Admin                 | Create a user with any role                                                    |
+| POST   | /api/expenses                 | Any logged-in user    | Submit an expense                                                              |
+| GET    | /api/expenses/my              | Any logged-in user    | List my expenses                                                               |
+| GET    | /api/expenses/pending         | Manager, Admin        | List pending expenses                                                          |
+| GET    | /api/expenses/approved        | Admin                 | List approved expenses                                                         |
+| PUT    | /api/expenses/{id}/approve    | Manager, Admin        | Approve an expense                                                             |
+| PUT    | /api/expenses/{id}/reject     | Manager, Admin        | Reject with a reason                                                           |
+| PUT    | /api/expenses/{id}/reimburse  | Admin                 | Mark as reimbursed and record the payment (method, reference no., date)        |
+| POST   | /api/expenses/{id}/receipt    | Expense owner         | Upload a receipt                                                               |
+| GET    | /api/expenses/{id}/receipt    | Owner, Manager, Admin | View a receipt                                                                 |
+| GET    | /api/expenses/{id}/history    | Owner, Manager, Admin | Audit trail of a claim                                                         |
+| GET    | /api/expenses/{id}/comments   | Owner, Manager, Admin | List comments on a claim                                                       |
+| POST   | /api/expenses/{id}/comments   | Owner, Manager, Admin | Add a comment                                                                  |
+| GET    | /api/audit/recent             | Admin                 | Recent activity across claims                                                  |
+| GET    | /api/expenses/search          | Any logged-in user    | Search, filter, sort and paginate claims (employees see only their own), department (managers and admins        |
+| GET    | /api/currencies               | Any logged-in user    | List supported currencies                                                      |
+| GET    | /api/currencies/rate          | Any logged-in user    | Current rate of a currency in INR                                              |
+| GET    | /api/expenses/{id}/payment    | Owner, Manager, Admin | Payment record of a reimbursed claim                                           |
+| GET    | /api/analytics/summary        | Any logged-in user    | Totals by category, month, department and status (employees see only their own) |
 
 ## Security
 
 - Passwords are hashed with BCrypt
 - Stateless JWT authentication; roles are enforced on the server with `@PreAuthorize`
 - Public registration always creates an **Employee**, whatever role the request contains
-- Receipts are checked for type and size, saved under a random file name, and only the owner, managers and admins can open them
+- Receipts are checked for type and size, saved under a random file name, and only the o wner, managers and admins can open them
 - CORS allows only `http://localhost:4200`
 
 ## Getting Started
@@ -194,6 +200,8 @@ Use `"role": "ADMIN"` to create another admin.
 - Database password and JWT secret live in `application.properties`; use environment variables in production
 - No email notifications or password reset
 - Claims in a currency other than INR need internet access to fetch the exchange rate. If the rate service is down, the last known rate is used; if there is none, the claim cannot be submitted until it is back (INR claims always work).
+- The app records payments but does not move any money; the actual bank transfer happens outside it
+- Chart totals are grouped in memory on the server, which is fine for a project of this size
 
 ## Team
 

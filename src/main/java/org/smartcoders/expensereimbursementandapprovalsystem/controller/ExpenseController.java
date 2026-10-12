@@ -7,6 +7,8 @@ import org.smartcoders.expensereimbursementandapprovalsystem.dto.CommentRequest;
 import org.smartcoders.expensereimbursementandapprovalsystem.dto.CommentResponse;
 import org.smartcoders.expensereimbursementandapprovalsystem.dto.ExpenseRequest;
 import org.smartcoders.expensereimbursementandapprovalsystem.dto.ExpenseResponse;
+import org.smartcoders.expensereimbursementandapprovalsystem.dto.PaymentRequest;
+import org.smartcoders.expensereimbursementandapprovalsystem.dto.PaymentResponse;
 import org.smartcoders.expensereimbursementandapprovalsystem.dto.RejectRequest;
 import org.smartcoders.expensereimbursementandapprovalsystem.service.CommentService;
 import org.smartcoders.expensereimbursementandapprovalsystem.service.ExpenseService;
@@ -70,8 +72,17 @@ public class ExpenseController {
     @PutMapping("/{id}/reimburse")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ExpenseResponse> reimburse(@PathVariable Long id,
+                                                     @Valid @RequestBody PaymentRequest request,
                                                      Authentication authentication) {
-        return ResponseEntity.ok(expenseService.reimburse(id, authentication.getName()));
+        return ResponseEntity.ok(expenseService.reimburse(id, request, authentication.getName()));
+    }
+
+    @GetMapping("/{id}/payment")
+    public ResponseEntity<PaymentResponse> getPayment(@PathVariable Long id,
+                                                      Authentication authentication) {
+        return expenseService.getPayment(authentication.getName(), isPrivileged(authentication), id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     @PostMapping(value = "/{id}/receipt", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

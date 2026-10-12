@@ -67,6 +67,23 @@
       <strong>{{ expense().rejectionReason }}</strong>
     </div>
     }
+    @if (payment(); as p) {
+    <div class="wide pay-summary">
+      <span>Payment</span>
+      <strong>
+        {{ methodLabel(p.paymentMethod) }}
+        @if (p.referenceNo) {
+        &middot; Ref {{ p.referenceNo }}
+        }
+      </strong>
+      <small>
+        {{ currency }}{{ p.amount | number: '1.0-2' }} paid on {{ p.paidOn }} by {{ p.paidByName }}
+      </small>
+      @if (p.note) {
+      <small>Note: {{ p.note }}</small>
+      }
+    </div>
+    }
   </div>
 
   <div class="tabs">

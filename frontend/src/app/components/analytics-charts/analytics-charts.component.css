@@ -1,0 +1,94 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ================= Controls ================= */
+.an-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.an-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.an-fields { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+.an-fields label { display: flex; flex-direction: column; gap: 4px; }
+.an-fields label span {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.an-fields input,
+.an-fields select { padding: 9px 12px; }
+
+/* ================= Summary tiles ================= */
+.an-wrap { display: flex; flex-direction: column; gap: 16px; transition: opacity 0.15s; }
+.an-wrap.loading { opacity: 0.55; }
+
+.an-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+.an-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(31, 77, 63, 0.06);
+  border: 1px solid var(--line);
+  animation: fadeUp 0.5s ease backwards;
+}
+.an-tile span {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.an-tile strong {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 22px;
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--forest);
+  overflow-wrap: anywhere;
+}
+.an-tile small { font-size: 12px; color: var(--muted); }
+
+.an-skel {
+  height: 84px;
+  border-radius: 14px;
+  background: linear-gradient(100deg, rgba(31, 77, 63, 0.07) 30%, rgba(255, 255, 255, 0.9) 50%, rgba(31, 77, 63, 0.07) 70%);
+  background-size: 300% 100%;
+  animation: skel 1.3s linear infinite;
+}
+
+/* ================= Graphs ================= */
+.an-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+.an-card {
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--line);
+  animation: fadeUp 0.55s ease backwards;
+}
+.an-card.wide { grid-column: 1 / -1; }
+.an-card h4 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--forest);
+}
+.an-box { position: relative; height: 290px; }
+.an-hint { margin: 8px 0 0; font-size: 12px; text-align: center; color: var(--muted); }
+
+.an-empty { padding: 36px 10px; text-align: center; color: var(--muted); }
