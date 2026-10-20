@@ -1,0 +1,142 @@
+/* ================= Sunset scene for the policy page ================= */
+:host {
+  display: block;
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 80% 18%, rgba(255, 214, 140, 0.9) 0, rgba(255, 190, 110, 0.45) 9%, rgba(255, 170, 90, 0) 34%),
+    linear-gradient(180deg, #2a1b4a 0%, #5b3a7d 38%, #b8607a 68%, #f2a95a 100%);
+  background-position: 80% 18%, 0 0;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  animation: sunBreath 10s ease-in-out infinite alternate;
+}
+
+/* Violet ridges */
+:host::before {
+  content: '';
+  position: fixed;
+  left: -4%;
+  right: -4%;
+  bottom: 0;
+  height: 44vh;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 400' preserveAspectRatio='none'><path d='M0 330 Q300 250 650 315 T1300 300 T1600 322 L1600 400 L0 400 Z' fill='%231d1236' fill-opacity='0.95'/></svg>") bottom / 100% 40% no-repeat,
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 400' preserveAspectRatio='none'><path d='M0 280 Q250 190 540 265 T1060 235 T1600 270 L1600 400 L0 400 Z' fill='%233a2560' fill-opacity='0.85'/></svg>") bottom / 100% 70% no-repeat;
+  animation: sway 36s ease-in-out infinite alternate;
+}
+
+/* Drifting golden dust */
+:host::after {
+  content: '';
+  position: fixed;
+  left: 0;
+  bottom: 8vh;
+  width: 200%;
+  height: 52vh;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle 4px at 10% 55%, rgba(255, 226, 160, 0.95), transparent 100%),
+    radial-gradient(circle 3px at 24% 28%, rgba(255, 214, 140, 0.9), transparent 100%),
+    radial-gradient(circle 4px at 38% 66%, rgba(255, 226, 160, 0.95), transparent 100%),
+    radial-gradient(circle 3px at 52% 22%, rgba(255, 205, 130, 0.9), transparent 100%),
+    radial-gradient(circle 4px at 67% 50%, rgba(255, 226, 160, 0.95), transparent 100%),
+    radial-gradient(circle 3px at 84% 34%, rgba(255, 214, 140, 0.9), transparent 100%);
+  background-size: 50% 100%;
+  background-repeat: repeat-x;
+  animation: drift 75s linear infinite;
+}
+
+/* ================= Rules ================= */
+.note { margin: 0; font-size: 13px; color: var(--muted); }
+
+.rules { display: flex; flex-direction: column; gap: 12px; }
+
+.rule {
+  display: grid;
+  grid-template-columns: 170px repeat(3, minmax(130px, 1fr));
+  align-items: end;
+  gap: 10px 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(31, 77, 63, 0.05);
+  border: 1px solid var(--line);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  animation: rowIn 0.45s ease backwards;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+.rule.changed {
+  border-color: var(--gold-dark);
+  box-shadow: 0 0 0 3px rgba(242, 169, 59, 0.2);
+}
+.rule.invalid { border-color: var(--coral); }
+
+.rule-name {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--forest);
+}
+
+.rule label { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.rule label span {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.rule input { width: 100%; }
+
+.edited-chip {
+  padding: 2px 9px;
+  border-radius: 99px;
+  background: rgba(242, 169, 59, 0.22);
+  color: #8a5300;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.full { grid-column: 1 / -1; margin: 0; }
+.last-change { color: var(--muted); font-size: 12px; }
+
+.save-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+
+.skel {
+  height: 84px;
+  border-radius: 14px;
+  background: linear-gradient(100deg, rgba(31, 77, 63, 0.07) 30%, rgba(255, 255, 255, 0.9) 50%, rgba(31, 77, 63, 0.07) 70%);
+  background-size: 300% 100%;
+  animation: skel 1.3s linear infinite;
+}
+
+/* ================= Explanation and history ================= */
+.how { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.55; }
+
+.history { list-style: none; margin: 0; padding: 0; }
+.history li {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 2px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+.history li:last-child { border-bottom: none; }
+.history small { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
+.history .when { flex-shrink: 0; color: var(--muted); font-size: 12px; white-space: nowrap; }
+
+@media (max-width: 860px) {
+  .rule { grid-template-columns: 1fr; }
+}

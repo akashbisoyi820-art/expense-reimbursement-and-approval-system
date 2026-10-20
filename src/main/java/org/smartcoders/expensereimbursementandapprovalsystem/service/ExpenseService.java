@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +36,7 @@ public class ExpenseService {
     private final AuditService auditService;
     private final ExchangeRateService exchangeRateService;
     private final PaymentService paymentService;
+    private final PolicyService policyService;
 
     public record ReceiptFile(Resource resource, String contentType) {}
 
@@ -46,6 +48,12 @@ public class ExpenseService {
 
         User user = getUser(email);
 
+        BigDecimal amountInBase = exchangeRateService.toBase(request.getAmount(), rate);
+
+        // Check the claim against the policy. Over-limit claims are flagged, not blocked.
+        PolicyService.PolicyCheck check = policyService.evaluate(
+                user, request.getCategory(), amountInBase, request.getExpenseDate());
+
         Expense expense = new Expense();
         expense.setUser(user);
         expense.setCategory(request.getCategory());
@@ -53,10 +61,14 @@ public class ExpenseService {
         expense.setCurrency(currency);
         expense.setExchangeRate(rate.rate());
         expense.setRateDate(rate.date());
-        expense.setAmountInBase(exchangeRateService.toBase(request.getAmount(), rate));
+        expense.setAmountInBase(amountInBase);
         expense.setExpenseDate(request.getExpenseDate());
         expense.setDescription(request.getDescription());
         expense.setStatus(ExpenseStatus.PENDING);
+        expense.setPolicyFlags(check.flags().isEmpty()
+                ? null
+                : String.join(PolicyService.FLAG_SEPARATOR, check.flags()));
+        expense.setReceiptRequired(check.receiptRequired());
 
         Expense saved = expenseRepository.save(expense);
 
@@ -65,6 +77,12 @@ public class ExpenseService {
         if (!ExchangeRateService.BASE_CURRENCY.equals(currency)) {
             details += " (about " + saved.getAmountInBase() + " " + ExchangeRateService.BASE_CURRENCY
                     + " at " + rate.rate().stripTrailingZeros().toPlainString() + ")";
+        }
+        if (!check.flags().isEmpty()) {
+            details += ". Flagged: " + String.join("; ", check.flags());
+        }
+        if (details.length() > 500) {
+            details = details.substring(0, 497) + "...";
         }
 
         auditService.log(saved.getId(), AuditAction.SUBMITTED, user,
@@ -99,6 +117,13 @@ public class ExpenseService {
         User actor = getUser(actorEmail);
         Expense expense = getExpense(id);
         requireStatus(expense, ExpenseStatus.PENDING);
+
+        // The policy asked for a receipt on this claim, so it cannot be approved without one
+        if (Boolean.TRUE.equals(expense.getReceiptRequired()) && !hasReceipt(expense)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "A receipt is required for this claim before it can be approved. "
+                            + "Ask the employee to upload one.");
+        }
 
         ExpenseStatus from = expense.getStatus();
         expense.setStatus(ExpenseStatus.APPROVED);
@@ -216,7 +241,15 @@ public class ExpenseService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
 
-    // Claims created before multi-currency have no currency data: treat them as INR
+    private List<String> splitFlags(String stored) {
+        if (stored == null || stored.isBlank()) {
+            return List.of();
+        }
+        return List.of(stored.split(Pattern.quote(PolicyService.FLAG_SEPARATOR)));
+    }
+
+    // Claims created before multi-currency have no currency data: treat them as INR.
+    // Claims created before the policy existed have no flags.
     public ExpenseResponse toResponse(Expense e) {
         String currency = e.getCurrency() != null ? e.getCurrency() : ExchangeRateService.BASE_CURRENCY;
         BigDecimal amountInBase = e.getAmountInBase() != null ? e.getAmountInBase() : e.getAmount();
@@ -238,7 +271,9 @@ public class ExpenseService {
                 e.getUser().getEmail(),
                 e.getUser().getDepartment(),
                 e.getRejectionReason(),
-                hasReceipt(e)
+                hasReceipt(e),
+                splitFlags(e.getPolicyFlags()),
+                Boolean.TRUE.equals(e.getReceiptRequired())
         );
     }
 }

@@ -296,7 +296,12 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
         this.message.set(`Expense #${id} approved`);
         this.afterAction();
       },
-      error: () => this.error.set('Failed to approve expense')
+      error: (err) =>
+        this.error.set(
+          err.status === 400
+            ? 'This claim cannot be approved right now. A receipt may be required, or it is no longer pending.'
+            : 'Failed to approve expense'
+        )
     });
   }
 
@@ -409,6 +414,10 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
           );
         }
       });
+  }
+
+  openPolicy() {
+    this.router.navigate(['/policy']);
   }
 
   logout() {

@@ -832,4 +832,102 @@ tbody tr:nth-child(n+8) { animation-delay: 0.5s; }
     background: linear-gradient(100deg, rgba(255, 255, 255, 0.05) 30%, rgba(255, 255, 255, 0.14) 50%, rgba(255, 255, 255, 0.05) 70%);
     background-size: 300% 100%;
   }
+  /* ============================================================
+     POLICY: hints, flags and the policy page
+     ============================================================ */
+  .top-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  .nav-btn {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: none;
+    padding: 9px 20px;
+  }
+  .nav-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.22); box-shadow: none; }
+
+  /* Hints in the claim form */
+  .policy-hint {
+    padding: 10px 14px;
+    border-radius: 12px;
+    border-left: 4px solid var(--moss);
+    background: rgba(58, 143, 95, 0.1);
+    font-size: 13px;
+    animation: fadeUp 0.3s ease backwards;
+  }
+  .policy-hint strong { color: var(--forest); }
+  .policy-hint ul { margin: 6px 0 0; padding-left: 18px; }
+  .policy-hint li { line-height: 1.6; }
+
+  .policy-warn,
+  .policy-need {
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    animation: fadeUp 0.3s ease backwards;
+  }
+  .policy-warn { border-left: 4px solid var(--gold-dark); background: rgba(242, 169, 59, 0.16); color: #7a4a00; }
+  .policy-need { border-left: 4px solid var(--coral); background: rgba(224, 89, 63, 0.12); color: #9b2f1a; }
+
+  /* Flags in tables and the details panel */
+  .flag-chip {
+    display: inline-block;
+    margin-right: 6px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    border: 1px solid rgba(224, 89, 63, 0.4);
+    background: rgba(224, 89, 63, 0.14);
+    color: #a8321c;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: help;
+  }
+  .need-receipt { display: block; margin-bottom: 4px; color: #a8321c; font-size: 11px; font-weight: 700; }
+
+  .flag-box {
+    padding: 8px 12px;
+    border-left: 3px solid var(--coral);
+    border-radius: 10px;
+    background: rgba(224, 89, 63, 0.08);
+  }
+
+  /* Screen change animation for the policy page */
+  html[data-screen='policy']::view-transition-old(root) { animation-name: vt-slide-out-right; }
+  html[data-screen='policy']::view-transition-new(root) { animation-name: vt-slide-in-left; }
+  @keyframes vt-slide-out-right { to { opacity: 0; transform: translateX(8%); } }
+  @keyframes vt-slide-in-left { from { opacity: 0; transform: translateX(-10%); } }
+
+  /* Dark theme */
+  html[data-theme='dark'] .policy-hint { background: rgba(58, 143, 95, 0.16); }
+  html[data-theme='dark'] .policy-hint strong { color: #9be3bd; }
+  html[data-theme='dark'] .policy-warn { background: rgba(242, 169, 59, 0.14); color: #f7c978; }
+  html[data-theme='dark'] .policy-need { background: rgba(224, 89, 63, 0.16); color: #ffa08c; }
+  html[data-theme='dark'] .flag-chip { background: rgba(224, 89, 63, 0.18); color: #ffa08c; }
+  html[data-theme='dark'] .need-receipt { color: #ffa08c; }
+  html[data-theme='dark'] .flag-box { background: rgba(224, 89, 63, 0.12); }
+  html[data-theme='dark'] .rule { background: rgba(255, 255, 255, 0.05); }
+  html[data-theme='dark'] .edited-chip { background: rgba(242, 169, 59, 0.2); color: #f7c978;
+  }
+
+  /* ============================================================
+   ASSISTANT (dark theme)
+   ============================================================ */
+  html[data-theme='dark'] .as-panel {
+    background: rgba(14, 22, 30, 0.97);
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.6);
+  }
+  html[data-theme='dark'] .as-bubble {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: var(--ink);
+  }
+  html[data-theme='dark'] .as-msg.me .as-bubble {
+    background: linear-gradient(135deg, #2f7a5d, #1f5a45);
+    color: #fff;
+  }
+  html[data-theme='dark'] .as-input { border-top-color: rgba(255, 255, 255, 0.12);
+
+  }
 }

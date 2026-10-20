@@ -2,11 +2,17 @@ import { DecimalPipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, computed, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { AnalyticsChartsComponent } from '../../components/analytics-charts/analytics-charts.component';
 import { ClaimDetailsComponent } from '../../components/claim-details/claim-details.component';
 import { ClaimsSearchComponent } from '../../components/claims-search/claims-search.component';
-import { AnalyticsChartsComponent } from '../../components/analytics-charts/analytics-charts.component';
 import { AuthService } from '../../services/auth.service';
-import { CurrencyInfo, Expense, ExpenseService, RateQuote } from '../../services/expense.service';
+import {
+  CurrencyInfo,
+  Expense,
+  ExpenseService,
+  PolicyRule,
+  RateQuote
+} from '../../services/expense.service';
 
 interface StatCard {
   key: string;
@@ -19,7 +25,13 @@ interface StatCard {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [FormsModule, DecimalPipe, ClaimDetailsComponent, ClaimsSearchComponent, AnalyticsChartsComponent],
+  imports: [
+    FormsModule,
+    DecimalPipe,
+    ClaimDetailsComponent,
+    ClaimsSearchComponent,
+    AnalyticsChartsComponent
+  ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
@@ -43,6 +55,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   selectedFile: File | null = null;
 
   currencies = signal<CurrencyInfo[]>([{ code: 'INR', name: 'Indian Rupee' }]);
+  policy = signal<PolicyRule[]>([]);
   rateQuote = signal<RateQuote | null>(null);
   rateLoading = signal(false);
   rateError = signal('');
@@ -101,6 +114,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadExpenses();
     this.loadCurrencies();
+    this.loadPolicy();
   }
 
   ngOnDestroy() {
@@ -124,6 +138,79 @@ export class DashboardComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+  private loadPolicy() {
+    this.expenseService.getPolicy().subscribe({
+      next: (rules) => this.policy.set(rules),
+      error: () => {
+        /* the form simply shows no policy hints */
+      }
+    });
+  }
+
+  // ---------- Policy hints for the claim form ----------
+
+  private ruleFor(category: string): PolicyRule | null {
+    return this.policy().find((r) => r.category.toLowerCase() === category.toLowerCase()) ?? null;
+  }
+
+  private money(value: number): string {
+    return `${this.currency}${Number(value).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+  }
+
+  // The amount being entered, in INR (null while the exchange rate is not known yet)
+  private currentInr(): number | null {
+    if (!this.amount) {
+      return null;
+    }
+    if (this.claimCurrency === 'INR') {
+      return this.amount;
+    }
+    const quote = this.rateQuote();
+    return quote ? this.amount * quote.rate : null;
+  }
+
+  policyLines(): string[] {
+    const rule = this.ruleFor(this.category);
+    if (!rule) {
+      return [];
+    }
+
+    const lines: string[] = [];
+    if (rule.maxPerClaim !== null) {
+      lines.push(`Up to ${this.money(rule.maxPerClaim)} per claim`);
+    }
+    if (rule.monthlyLimit !== null) {
+      lines.push(`${this.money(rule.monthlyLimit)} per month in total`);
+    }
+    if (rule.receiptRequiredAbove !== null) {
+      lines.push(
+        Number(rule.receiptRequiredAbove) === 0
+          ? 'A receipt is always required'
+          : `Receipt required above ${this.money(rule.receiptRequiredAbove)}`
+      );
+    }
+    return lines;
+  }
+
+  overLimit(): boolean {
+    const rule = this.ruleFor(this.category);
+    const inr = this.currentInr();
+    return !!rule && rule.maxPerClaim !== null && inr !== null && inr > Number(rule.maxPerClaim);
+  }
+
+  needsReceipt(): boolean {
+    const rule = this.ruleFor(this.category);
+    const inr = this.currentInr();
+    return (
+      !!rule &&
+      rule.receiptRequiredAbove !== null &&
+      inr !== null &&
+      inr > Number(rule.receiptRequiredAbove)
+    );
+  }
+
+  // ---------- Currency ----------
 
   setCurrency(code: string) {
     this.claimCurrency = code;
@@ -167,6 +254,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
     return Math.round(this.amount * quote.rate * 100) / 100;
   }
+
+  // ---------- Page helpers ----------
 
   openDetails(expense: Expense) {
     this.selectedClaim.set(expense);
@@ -287,6 +376,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.needsReceipt() && !this.selectedFile) {
+      this.error.set(
+        'A receipt is required for this amount. Please attach one before submitting.'
+      );
+      return;
+    }
+
     this.expenseService
       .createExpense({
         category: this.category,
@@ -305,15 +401,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.selectedFile = null;
           fileInput.value = '';
 
+          const flagged = created.policyFlags.length > 0;
+          const note = flagged
+            ? ' It is over the policy limit, so your manager will see a warning.'
+            : '';
+
           if (!file) {
-            this.message.set('Expense submitted successfully');
+            this.message.set('Expense submitted successfully.' + note);
             this.refreshAll();
             return;
           }
 
           this.expenseService.uploadReceipt(created.id, file).subscribe({
             next: () => {
-              this.message.set('Expense submitted with receipt');
+              this.message.set('Expense submitted with receipt.' + note);
               this.refreshAll();
             },
             error: () => {

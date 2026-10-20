@@ -18,6 +18,8 @@ export interface Expense {
   employeeDepartment: string | null;
   rejectionReason: string | null;
   hasReceipt: boolean;
+  policyFlags: string[];
+  receiptRequired: boolean;
 }
 
 export interface ExpenseRequest {
@@ -44,6 +46,30 @@ export interface PaymentRecord {
   amount: number;
   note: string | null;
   paidByName: string;
+  createdAt: string;
+}
+
+export interface PolicyRule {
+  id: number;
+  category: string;
+  maxPerClaim: number | null;
+  monthlyLimit: number | null;
+  receiptRequiredAbove: number | null;
+  updatedAt: string | null;
+  updatedByName: string | null;
+}
+
+export interface PolicyRuleInput {
+  category: string;
+  maxPerClaim: number | null;
+  monthlyLimit: number | null;
+  receiptRequiredAbove: number | null;
+}
+
+export interface PolicyChange {
+  id: number;
+  summary: string;
+  changedByName: string;
   createdAt: string;
 }
 
@@ -245,5 +271,17 @@ export class ExpenseService {
       params = params.set('to', to);
     }
     return this.http.get<Analytics>(`${this.apiRoot}/analytics/summary`, { params });
+  }
+
+  getPolicy(): Observable<PolicyRule[]> {
+    return this.http.get<PolicyRule[]>(`${this.apiRoot}/policy`);
+  }
+
+  updatePolicy(rules: PolicyRuleInput[]): Observable<PolicyRule[]> {
+    return this.http.put<PolicyRule[]>(`${this.apiRoot}/policy`, { rules });
+  }
+
+  getPolicyHistory(): Observable<PolicyChange[]> {
+    return this.http.get<PolicyChange[]>(`${this.apiRoot}/policy/history`);
   }
 }

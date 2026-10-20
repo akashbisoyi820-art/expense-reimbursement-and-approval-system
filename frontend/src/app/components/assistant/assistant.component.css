@@ -1,0 +1,163 @@
+:host { display: contents; }
+
+/* ================= Launcher button ================= */
+.as-launcher {
+  position: fixed;
+  right: 22px;
+  bottom: 88px;
+  z-index: 950;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(135deg, #2b8fb5, #1f4d3f);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+  animation: ringPulse 3.2s ease-out infinite;
+}
+.as-launcher.open { animation: none; }
+
+.as-icon {
+  position: absolute;
+  display: flex;
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
+}
+.as-close { opacity: 0; transform: rotate(-90deg) scale(0.4); font-size: 20px; }
+.as-launcher.open .as-chat { opacity: 0; transform: rotate(90deg) scale(0.4); }
+.as-launcher.open .as-close { opacity: 1; transform: none; }
+
+/* ================= Chat panel ================= */
+.as-panel {
+  position: fixed;
+  right: 22px;
+  bottom: 156px;
+  z-index: 951;
+  width: min(380px, calc(100vw - 28px));
+  height: min(540px, calc(100vh - 180px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 22px;
+  background: rgba(255, 251, 242, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 28px 70px rgba(10, 30, 25, 0.45);
+  transform-origin: bottom right;
+  animation: asOpen 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.as-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 16px;
+  color: #fff;
+  background: linear-gradient(120deg, rgba(18, 52, 43, 0.97), rgba(47, 111, 85, 0.95));
+  border-bottom: 3px solid var(--gold);
+}
+.as-title { display: flex; align-items: center; gap: 10px; }
+.as-title strong { display: block; font-size: 15px; }
+.as-title small { display: block; font-size: 11px; color: #d6e6dc; }
+.as-avatar {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  background: radial-gradient(circle at 30% 30%, #4fb27a, #1f4d3f);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.as-head-actions { display: flex; gap: 6px; }
+.as-icon-btn {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: none;
+  font-size: 14px;
+  line-height: 1;
+}
+.as-icon-btn::after { display: none; }
+.as-icon-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.28); box-shadow: none; }
+
+/* ================= Messages ================= */
+.as-body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.as-msg { display: flex; animation: asIn 0.3s ease backwards; }
+.as-msg.me { justify-content: flex-end; }
+
+.as-bubble {
+  max-width: 88%;
+  padding: 10px 14px;
+  border-radius: 16px 16px 16px 4px;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: 0 4px 10px rgba(20, 50, 45, 0.08);
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.as-msg.me .as-bubble {
+  border-radius: 16px 16px 4px 16px;
+  border-color: transparent;
+  color: #fff;
+  background: linear-gradient(135deg, var(--forest-2), #1f4d3f);
+}
+
+.as-typing { display: flex; gap: 5px; padding: 14px 16px; }
+.as-typing i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--muted);
+  animation: asDot 1.1s ease-in-out infinite;
+}
+.as-typing i:nth-child(2) { animation-delay: 0.15s; }
+.as-typing i:nth-child(3) { animation-delay: 0.3s; }
+
+/* ================= Suggestions and input ================= */
+.as-chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 10px; }
+.as-chips .filter-btn { padding: 6px 12px; font-size: 12px; text-align: left; }
+
+.as-input {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px 6px;
+  border-top: 1px solid var(--line);
+}
+.as-input input { flex: 1; min-width: 0; padding: 10px 12px; }
+.as-send { padding: 0 16px; }
+
+.as-note { margin: 0; padding: 0 16px 10px; text-align: center; font-size: 11px; color: var(--muted); }
+
+/* ================= Keyframes ================= */
+@keyframes asOpen {
+  from { opacity: 0; transform: translateY(18px) scale(0.92); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes asIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes asDot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+  30% { transform: translateY(-5px); opacity: 1; }
+}

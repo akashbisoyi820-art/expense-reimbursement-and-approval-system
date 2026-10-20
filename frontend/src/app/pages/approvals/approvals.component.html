@@ -4,7 +4,12 @@
       <h2>Approvals</h2>
       <p>Welcome {{ name }} ({{ role }})</p>
     </div>
-    <button class="logout" (click)="logout()">Logout</button>
+    <div class="top-actions">
+      @if (isAdmin) {
+      <button class="nav-btn" (click)="openPolicy()">Policy</button>
+      }
+      <button class="logout" (click)="logout()">Logout</button>
+    </div>
   </div>
 
   @if (loaded()) {
@@ -90,7 +95,18 @@
           <button class="link-btn" (click)="openDetails(e)">Details</button>
         </td>
         <td class="actions">
-          <button class="approve" (click)="approve(e.id)">Approve</button>
+          @if (e.policyFlags.length > 0) {
+          <span class="flag-chip" [title]="e.policyFlags.join('\n')">&#9888; Over limit</span>
+          }
+          @if (e.receiptRequired && !e.hasReceipt) {
+          <span class="flag-chip" title="A receipt is required before this claim can be approved">Receipt required</span>
+          }
+          <button
+            class="approve"
+            [disabled]="e.receiptRequired && !e.hasReceipt"
+            (click)="approve(e.id)">
+            Approve
+          </button>
           <button class="reject" (click)="startReject(e.id)">Reject</button>
         </td>
       </tr>

@@ -71,10 +71,36 @@
     </div>
     }
 
+    @if (policyLines().length > 0) {
+    <div class="policy-hint">
+      <strong>{{ category }} policy</strong>
+      <ul>
+        @for (line of policyLines(); track line) {
+        <li>{{ line }}</li>
+        }
+      </ul>
+    </div>
+    }
+    @if (overLimit()) {
+    <div class="policy-warn">
+      This claim is over the {{ category }} limit. It will still be submitted, but your manager
+      will see a warning.
+    </div>
+    }
+    @if (needsReceipt() && !selectedFile) {
+    <div class="policy-need">
+      A receipt is required for this amount. Please attach one below.
+    </div>
+    }
+
     <input type="date" [(ngModel)]="expenseDate" />
     <input type="text" placeholder="Description" [(ngModel)]="description" />
 
-    <label class="file-label">Receipt (optional): PDF, PNG or JPG, max 5 MB</label>
+    <label class="file-label">
+      Receipt
+      {{ needsReceipt() ? '(required for this amount)' : '(optional)' }}:
+      PDF, PNG or JPG, max 5 MB
+    </label>
     <input
       #fileInput
       type="file"
@@ -87,13 +113,13 @@
     @if (error()) { <p class="error">{{ error() }}</p> }
   </div>
 
-
   <div class="card">
     <app-analytics-charts
       heading="Spending Overview"
       [refresh]="refreshKey()"
       (slice)="claimsSearch.applyExternal($event); tableCard.scrollIntoView()" />
   </div>
+
   <div class="card" #tableCard>
     <app-claims-search
       #claimsSearch

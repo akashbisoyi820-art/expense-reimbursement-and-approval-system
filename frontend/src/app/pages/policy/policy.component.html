@@ -1,0 +1,129 @@
+<div class="page">
+  <div class="top">
+    <div>
+      <h2>Reimbursement Policy</h2>
+      <p>Welcome {{ name }} ({{ role }})</p>
+    </div>
+    <div class="top-actions">
+      <button class="nav-btn" (click)="back()">Back to approvals</button>
+      <button class="logout" (click)="logout()">Logout</button>
+    </div>
+  </div>
+
+  @if (message()) { <p class="success">{{ message() }}</p> }
+  @if (error()) { <p class="error">{{ error() }}</p> }
+
+  <div class="card">
+    <h3>Rules by category</h3>
+    <p class="note">
+      All amounts are in INR. Leave a box empty to remove that rule. A receipt limit of 0 means a
+      receipt is always required.
+    </p>
+
+    @if (loading()) {
+    <div class="skel"></div>
+    <div class="skel"></div>
+    <div class="skel"></div>
+    } @else {
+    <div class="rules">
+      @for (row of rows(); track row.category; let i = $index) {
+      <div
+        class="rule"
+        [class.changed]="isChanged(row)"
+        [class.invalid]="rowError(row)"
+        [style.--i]="i">
+        <div class="rule-name">
+          {{ row.category }}
+          @if (isChanged(row)) {
+          <span class="edited-chip">edited</span>
+          }
+        </div>
+
+        <label>
+          <span>Per-claim limit</span>
+          <input type="number" min="0" placeholder="No limit" [(ngModel)]="row.maxPerClaim" />
+        </label>
+
+        <label>
+          <span>Monthly limit (per employee)</span>
+          <input type="number" min="0" placeholder="No limit" [(ngModel)]="row.monthlyLimit" />
+        </label>
+
+        <label>
+          <span>Receipt required above</span>
+          <input
+            type="number"
+            min="0"
+            placeholder="Not required"
+            [(ngModel)]="row.receiptRequiredAbove" />
+        </label>
+
+        @if (rowError(row)) {
+        <p class="error full">{{ rowError(row) }}</p>
+        }
+        @if (row.updatedByName && row.updatedAt) {
+        <small class="full last-change">
+          Last changed by {{ row.updatedByName }} on
+          {{ row.updatedAt | date: 'dd MMM yyyy, hh:mm a' }}
+        </small>
+        }
+      </div>
+      }
+    </div>
+
+    <div class="save-row">
+      <button (click)="save()" [disabled]="saving() || changedCount() === 0">
+        {{ saving() ? 'Saving...' : 'Save changes' }}
+        @if (changedCount() > 0 && !saving()) {
+        ({{ changedCount() }})
+        }
+      </button>
+      <button class="cancel" (click)="discard()" [disabled]="changedCount() === 0">
+        Discard changes
+      </button>
+    </div>
+    }
+  </div>
+
+  <div class="card">
+    <h3>How the rules work</h3>
+    <ul class="how">
+      <li>
+        <strong>Per-claim limit:</strong> a single claim above this amount is flagged
+        <em>Over limit</em> for the manager. It is still submitted.
+      </li>
+      <li>
+        <strong>Monthly limit:</strong> if one employee's claims in a category in one month (rejected
+        claims excluded) go above this amount, the claim is flagged.
+      </li>
+      <li>
+        <strong>Receipt required:</strong> claims above this amount need a receipt. The employee
+        cannot submit without one, and a manager cannot approve until it is uploaded.
+      </li>
+      <li>
+        Changes apply to claims submitted <strong>after</strong> saving. Claims already submitted keep
+        the flags they got at that time.
+      </li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Policy history</h3>
+
+    @if (history().length === 0) {
+    <p>No changes have been made yet.</p>
+    } @else {
+    <ul class="history">
+      @for (c of history(); track c.id) {
+      <li>
+        <div>
+          <strong>{{ c.summary }}</strong>
+          <small>by {{ c.changedByName }}</small>
+        </div>
+        <span class="when">{{ c.createdAt | date: 'dd MMM yyyy, hh:mm a' }}</span>
+      </li>
+      }
+    </ul>
+    }
+  </div>
+</div>

@@ -141,7 +141,12 @@
       </td>
       <td>{{ e.expenseDate }}</td>
       <td>{{ e.description || '-' }}</td>
-      <td><span class="badge" [class]="e.status">{{ e.status }}</span></td>
+      <td>
+        <span class="badge" [class]="e.status">{{ e.status }}</span>
+        @if (e.policyFlags.length > 0) {
+        <span class="flag-chip" [title]="e.policyFlags.join('\n')">&#9888; Over limit</span>
+        }
+      </td>
       @if (!showEmployee()) {
       <td>{{ e.rejectionReason || '-' }}</td>
       }
@@ -149,6 +154,9 @@
         @if (e.hasReceipt) {
         <button class="link-btn" (click)="receipt.emit(e.id)">View</button>
         } @else if (allowUpload() && e.status === 'PENDING') {
+        @if (e.receiptRequired) {
+        <span class="need-receipt">Receipt required</span>
+        }
         <input
           type="file"
           class="row-file"

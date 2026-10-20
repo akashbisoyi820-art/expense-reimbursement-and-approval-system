@@ -61,6 +61,20 @@
       <span>Description</span>
       <strong>{{ expense().description || '-' }}</strong>
     </div>
+    @if (expense().policyFlags.length > 0) {
+    <div class="wide flag-box">
+      <span>Policy warnings</span>
+      @for (f of expense().policyFlags; track f) {
+      <strong>{{ f }}</strong>
+      }
+    </div>
+    }
+    @if (expense().receiptRequired && !expense().hasReceipt) {
+    <div class="wide flag-box">
+      <span>Receipt</span>
+      <strong>A receipt is required for this claim before it can be approved.</strong>
+    </div>
+    }
     @if (expense().rejectionReason) {
     <div class="wide">
       <span>Rejection reason</span>

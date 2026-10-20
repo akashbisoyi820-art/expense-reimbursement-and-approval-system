@@ -6,6 +6,7 @@ import org.smartcoders.expensereimbursementandapprovalsystem.entity.ExpenseStatu
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @AllArgsConstructor
@@ -26,4 +27,6 @@ public class ExpenseResponse {
     private String employeeDepartment;
     private String rejectionReason;
     private Boolean hasReceipt;
+    private List<String> policyFlags;
+    private Boolean receiptRequired;
 }

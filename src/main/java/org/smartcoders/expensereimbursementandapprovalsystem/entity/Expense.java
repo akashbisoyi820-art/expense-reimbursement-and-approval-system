@@ -54,4 +54,11 @@ public class Expense {
 
     @Column(length = 500)
     private String rejectionReason;
+
+    // Policy warnings saved when the claim was submitted (separated by ||)
+    @Column(length = 1000)
+    private String policyFlags;
+
+    // Whether the policy asked for a receipt on this claim when it was submitted
+    private Boolean receiptRequired;
 }

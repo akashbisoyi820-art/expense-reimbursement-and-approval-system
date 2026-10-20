@@ -15,12 +15,14 @@ A full-stack web application for managing office expense claims. Employees submi
 - Search and filter own claims (keyword, status, category, date range, amount range) with sorting and pagination
 - Submit claims in 9 currencies (INR, USD, EUR, GBP, AED, SGD, AUD, CAD, JPY) with a live exchange-rate preview; the rate used is saved with each claim
 - Choose a department when registering
+- The claim form shows the policy limits of the chosen category and warns when an amount is over a limit. Where a receipt is compulsory, a claim cannot be submitted without one.
 
 **Manager**
 - Review pending expenses and open their receipts
 - Approve, or reject with a required reason
 - Claim details panel with a full audit trail (who did what, and when) and a comment thread between employee and approver
 - All Claims search with an employee filter, sorting and pagination
+- Over-limit claims carry an "Over limit" warning with the reason, and a claim that needs a receipt cannot be approved until the receipt is uploaded
 
 **Admin**
 - Everything a manager can do
@@ -29,6 +31,7 @@ A full-stack web application for managing office expense claims. Employees submi
 - Recent Activity feed of every action across all claims
 - All Claims search with an employee filter, sorting and pagination
 - Record the payment when reimbursing a claim: method (bank transfer, UPI, cash, cheque), reference number and date. Only the transaction reference is stored, never a bank account number.
+- Policy management page: per-category limits (per claim, monthly per employee, receipt required above), with a history of every change (who, when, what)
 
 **General**
 - JWT authentication and role-based access control
@@ -37,6 +40,7 @@ A full-stack web application for managing office expense claims. Employees submi
 - All totals, summary cards and amount filters use the INR-converted amount, so claims in different currencies can be compared
 - Spending Overview charts (by category, status, month and, for managers and admins, by department), with date and status filters. Clicking a slice or bar opens the matching claims.
 - The claim details panel shows the payment record of a reimbursed claim
+- Rule-based expense assistant (chat) that answers from the real policy and the user's own claims, with no outside service
 
 ## Workflow
 
@@ -73,11 +77,11 @@ PENDING -> REJECTED (with a reason)
 | POST   | /api/auth/register            | Public                | Create an employee account                                                     |
 | POST   | /api/auth/login               | Public                | Log in and receive a JWT                                                       |
 | POST   | /api/admin/users              | Admin                 | Create a user with any role                                                    |
-| POST   | /api/expenses                 | Any logged-in user    | Submit an expense                                                              |
+| POST   | /api/expenses                 | Any logged-in user    | Submit an expense (optional currency; policy warnings are saved with the claim)                                                           |
 | GET    | /api/expenses/my              | Any logged-in user    | List my expenses                                                               |
 | GET    | /api/expenses/pending         | Manager, Admin        | List pending expenses                                                          |
 | GET    | /api/expenses/approved        | Admin                 | List approved expenses                                                         |
-| PUT    | /api/expenses/{id}/approve    | Manager, Admin        | Approve an expense                                                             |
+| PUT    | /api/expenses/{id}/approve    | Manager, Admin        | Approve an expense (blocked while a required receipt is missing)                                                 |
 | PUT    | /api/expenses/{id}/reject     | Manager, Admin        | Reject with a reason                                                           |
 | PUT    | /api/expenses/{id}/reimburse  | Admin                 | Mark as reimbursed and record the payment (method, reference no., date)        |
 | POST   | /api/expenses/{id}/receipt    | Expense owner         | Upload a receipt                                                               |
@@ -91,6 +95,10 @@ PENDING -> REJECTED (with a reason)
 | GET    | /api/currencies/rate          | Any logged-in user    | Current rate of a currency in INR                                              |
 | GET    | /api/expenses/{id}/payment    | Owner, Manager, Admin | Payment record of a reimbursed claim                                           |
 | GET    | /api/analytics/summary        | Any logged-in user    | Totals by category, month, department and status (employees see only their own) |
+| GET    | /api/policy                   | Any logged-in user    | Read the reimbursement policy  |
+| PUT    | /api/policy                   | Admin                 | Update the policy rules        |
+| GET    | /api/policy/history           | Admin                 | History of policy changes      |
+| POST   | /api/assistant/ask            | Any logged-in user    | Ask the rule-based assistant   |
 
 ## Security
 
@@ -202,7 +210,13 @@ Use `"role": "ADMIN"` to create another admin.
 - Claims in a currency other than INR need internet access to fetch the exchange rate. If the rate service is down, the last known rate is used; if there is none, the claim cannot be submitted until it is back (INR claims always work).
 - The app records payments but does not move any money; the actual bank transfer happens outside it
 - Chart totals are grouped in memory on the server, which is fine for a project of this size
+- Claims over a policy limit are flagged for the manager, not blocked. Only a missing required receipt blocks submission and approval.
+- Policy changes apply to claims submitted afterwards; older claims keep the flags they got at submission.
+- The assistant is rule-based: it understands a fixed set of topics (English, plus a few Hinglish words) and says so when it does not understand
 
 ## Team
 
 SmartCoders
+Akash  Bisoyi
+Bhabani Sankar Ray
+Sivam Kumar
