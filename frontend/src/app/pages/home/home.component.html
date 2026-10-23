@@ -1,0 +1,589 @@
+<div class="bar"><div class="bar-fill"></div></div>
+
+<!-- ================= Navbar ================= -->
+<header class="nav" [class.open]="menu()">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top" (click)="go('top', $event)">
+      <span class="mark">ER</span>
+      <span class="name">Expense<b>Hub</b></span>
+    </a>
+
+    <nav class="links" aria-label="Main">
+      @for (l of navLinks; track l.id) {
+      <a [href]="'#' + l.id" [class.active]="active() === l.id" (click)="go(l.id, $event)">{{ l.label }}</a>
+      }
+    </nav>
+
+    <div class="nav-cta">
+      @if (loggedIn) {
+      <a class="btn primary sm" [routerLink]="homeLink">Open dashboard</a>
+      } @else {
+      <a class="btn ghost sm" routerLink="/login">Log in</a>
+      <a class="btn primary sm" routerLink="/register">Get started</a>
+      }
+      <button class="burger" type="button" (click)="menu.set(!menu())" aria-label="Menu">
+        <i></i><i></i><i></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="drawer">
+    @for (l of navLinks; track l.id) {
+    <a [href]="'#' + l.id" (click)="go(l.id, $event)">{{ l.label }}</a>
+    }
+  </div>
+</header>
+
+<!-- ================= Hero ================= -->
+<section class="hero" id="top">
+  <div class="hero-bg">
+    <span class="blob a"></span>
+    <span class="blob b"></span>
+    <span class="gridl"></span>
+  </div>
+
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <a class="pill rise" href="#features" (click)="go('features', $event)">
+        <b>New</b>
+        <span>Policy engine and rule-based assistant</span>
+        <i>&rarr;</i>
+      </a>
+
+      <h1 class="rise" style="--d: 0.08s">
+        Expense reimbursement,<br />
+        <span class="grad">without the chaos.</span>
+      </h1>
+
+      <p class="lead rise" style="--d: 0.16s">
+        Employees submit claims in any currency. Managers review them against company policy.
+        Finance pays with a complete paper trail. One system for teams that want money matters to be
+        clear.
+      </p>
+
+      <div class="cta-row rise" style="--d: 0.24s">
+        @if (loggedIn) {
+        <a class="btn primary" [routerLink]="homeLink">Open my dashboard <span class="ar">&rarr;</span></a>
+        } @else {
+        <a class="btn primary" routerLink="/register">Get started <span class="ar">&rarr;</span></a>
+        <a class="btn ghost" routerLink="/login">Log in</a>
+        }
+      </div>
+
+      <ul class="hero-points rise" style="--d: 0.32s">
+        <li>Live exchange rates</li>
+        <li>Complete audit trail</li>
+        <li>Role-based access</li>
+      </ul>
+    </div>
+
+    <div class="hero-visual rise" style="--d: 0.2s">
+      <div class="halo"></div>
+
+      <div class="dwrap reveal">
+        <div class="device">
+          <div class="app">
+            <div class="side">
+              <span class="lg">ER</span>
+              <i class="si on"></i><i class="si"></i><i class="si"></i><i class="si"></i><i class="si"></i>
+            </div>
+
+            <div class="main">
+              <div class="mtop"><strong>Dashboard</strong><span class="av">A</span></div>
+
+              <div class="kpis">
+                <div class="kpi"><small>Total claimed</small><strong>&#8377;<b data-count="48250">0</b></strong></div>
+                <div class="kpi"><small>Pending</small><strong><b data-count="3">0</b></strong></div>
+                <div class="kpi"><small>Reimbursed</small><strong>&#8377;<b data-count="31400">0</b></strong></div>
+              </div>
+
+              <div class="mrow2">
+                <div class="mchart">
+                  <small>Spending by month</small>
+                  <div class="bars">
+                    @for (h of heroBars; track $index; let i = $index) {
+                    <i [style.--h]="h + '%'" [style.--i]="i"></i>
+                    }
+                  </div>
+                </div>
+
+                <div class="mlist">
+                  <div class="mr" style="--o: 0s">
+                    <span>Cab fare</span><em>&#8377;1,500</em>
+                    <span class="ps"><i class="p1">Pending</i><i class="p2">Approved</i><i class="p3">Paid</i></span>
+                  </div>
+                  <div class="mr" style="--o: -1.5s">
+                    <span>Hotel stay</span><em>&#8377;4,800</em>
+                    <span class="ps"><i class="p1">Pending</i><i class="p2">Approved</i><i class="p3">Paid</i></span>
+                  </div>
+                  <div class="mr" style="--o: -3s">
+                    <span>Team lunch</span><em>&#8377;850</em>
+                    <span class="ps"><i class="p1">Pending</i><i class="p2">Approved</i><i class="p3">Paid</i></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fc f1"><span class="fd ok"></span><div><b>Claim approved</b><small>Manager1 &middot; &#8377;4,800</small></div></div>
+      <div class="fc f2"><span class="fd info"></span><div><b>Rate saved</b><small>1 USD = &#8377;83.62</small></div></div>
+      <div class="fc f3"><span class="fd warn"></span><div><b>Over limit</b><small>Flagged for review</small></div></div>
+    </div>
+  </div>
+
+  <div class="wrap built">
+    <span class="built-label">Built with</span>
+    <div class="marq" aria-hidden="true">
+      <div class="marq-track">
+        @for (t of techStrip; track $index) {
+        <span>{{ t }}</span>
+        }
+        @for (t of techStrip; track $index) {
+        <span>{{ t }}</span>
+        }
+        @for (t of techStrip; track $index) {
+        <span>{{ t }}</span>
+        }
+        @for (t of techStrip; track $index) {
+        <span>{{ t }}</span>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Product tour ================= -->
+<section class="sec" id="product">
+  <div class="wrap">
+    <div class="shead reveal">
+      <span class="eyebrow">One platform</span>
+      <h2>Every role gets the view it needs</h2>
+      <p>Employees, managers and admins work in the same system, each with the screens and powers that fit the job.</p>
+    </div>
+
+    <div class="tour reveal">
+      <div class="seg" [style.--i]="tab()">
+        <span class="ind"></span>
+        @for (t of tabs; track t.key; let i = $index) {
+        <button class="seg-btn" type="button" [class.on]="tab() === i" (click)="tab.set(i)">{{ t.key }}</button>
+        }
+      </div>
+
+      <div class="tpanels">
+        @for (t of tabs; track t.key; let i = $index) {
+        <div class="tpanel" [class.on]="tab() === i">
+          <div class="ptext">
+            <h3>{{ t.title }}</h3>
+            <p>{{ t.text }}</p>
+            <ul class="ticks">
+              @for (p of t.points; track p) {
+              <li>{{ p }}</li>
+              }
+            </ul>
+          </div>
+
+          <div class="pvis">
+            @switch (t.key) {
+            @case ('Employee') {
+            <div class="ui">
+              <div class="ui-h">New expense</div>
+              <div class="field"><span>Category</span><b>Travel</b></div>
+              <div class="field"><span>Amount</span><b>50.00 USD</b></div>
+              <div class="note ok">1 USD = &#8377;83.62 &nbsp;&asymp;&nbsp; <b>&#8377;4,181</b></div>
+              <div class="note info">Travel policy: up to &#8377;10,000 per claim</div>
+              <div class="field"><span>Receipt</span><b class="okc">cab-receipt.pdf</b></div>
+              <div class="ui-btn">Submit expense</div>
+            </div>
+            }
+            @case ('Manager') {
+            <div class="ui">
+              <div class="ui-h">Pending approvals</div>
+              <div class="claim">
+                <div><b>Hotel stay</b><small>Akash &middot; Engineering</small></div>
+                <em>&#8377;12,500</em>
+                <span class="warn">&#9888; Over limit</span>
+              </div>
+              <div class="claim">
+                <div><b>Team lunch</b><small>Priya &middot; Sales</small></div>
+                <em>&#8377;850</em>
+              </div>
+              <div class="claim">
+                <div><b>Cab fare</b><small>Akash &middot; Engineering</small></div>
+                <em>&#8377;1,500</em>
+              </div>
+              <div class="ui-actions"><span class="ui-btn ok">&#10003; Approve</span><span class="ui-btn out">&#10005; Reject</span></div>
+            </div>
+            }
+            @case ('Admin') {
+            <div class="ui">
+              <div class="ui-h">Record payment</div>
+              <div class="field"><span>Pay</span><b>&#8377;4,800 to Akash</b></div>
+              <div class="field"><span>Method</span><b>UPI</b></div>
+              <div class="field"><span>Reference</span><b>UPI-2026-1001</b></div>
+              <div class="field"><span>Paid on</span><b>11 Oct 2026</b></div>
+              <div class="note info">Only the reference is stored, never a bank account number</div>
+              <div class="ui-btn">Confirm payment</div>
+            </div>
+            }
+            }
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Features grid ================= -->
+<section class="sec soft" id="features">
+  <div class="wrap">
+    <div class="shead reveal">
+      <span class="eyebrow">Features</span>
+      <h2>Everything a finance team expects</h2>
+      <p>From the first receipt to the final payment, every step is checked, recorded and visible to the right people.</p>
+    </div>
+
+    <div class="fgrid">
+      @for (f of features; track f.title; let i = $index) {
+      <article class="fcard spot reveal" [style.--d]="(i % 4) * 0.07 + 's'">
+          <span class="fi">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              @for (p of icon(f.icon); track p) {
+                <path [attr.d]="p" />
+              }
+            </svg>
+          </span>
+        <h3>{{ f.title }}</h3>
+        <p>{{ f.text }}</p>
+      </article>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ================= Deep dives ================= -->
+<section class="sec">
+  <div class="wrap">
+    <!-- Audit trail and comments -->
+    <div class="dive reveal">
+      <div class="dtext">
+        <span class="eyebrow">Audit trail and comments</span>
+        <h3>Know who did what, and when</h3>
+        <p>
+          Every action on a claim is written to a timeline that nobody can quietly edit. The people
+          involved can talk about the claim right there, so decisions never get lost in email.
+        </p>
+        <ul class="ticks">
+          <li>Submitted, approved, rejected and paid, each with a name and a time</li>
+          <li>Rejection reasons and payment details on the timeline</li>
+          <li>A comment thread on every claim</li>
+        </ul>
+      </div>
+
+      <div class="dvis">
+        <div class="ui">
+          <div class="ui-h">Claim #1042 <span class="tagc s-paid">Reimbursed</span></div>
+          <ol class="tlm">
+            <li><b>Submitted</b><small>Akash &middot; 10 Oct, 10:12 am</small><em>Travel claim of 50 USD (about 4,181 INR)</em></li>
+            <li><b>Approved</b><small>Manager1 &middot; 10 Oct, 11:40 am</small></li>
+            <li><b>Reimbursed</b><small>Bhabani &middot; 11 Oct, 09:05 am</small><em>Paid by UPI, ref UPI-2026-1001</em></li>
+          </ol>
+          <div class="cm other"><b>Manager1</b>Please attach the toll receipt too.</div>
+          <div class="cm mine">Done, uploaded just now.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Policy engine -->
+    <div class="dive flip reveal">
+      <div class="dtext">
+        <span class="eyebrow">Policy engine</span>
+        <h3>Rules that guide, not block</h3>
+        <p>
+          Admins set the limits for each category. A claim over a limit is flagged for the manager
+          with a clear reason, and a required receipt is enforced, so exceptions stay visible.
+        </p>
+        <ul class="ticks">
+          <li>Per-claim and monthly limits, and a receipt rule, for every category</li>
+          <li>Limits are checked on the INR amount, whatever the currency</li>
+          <li>Every policy change is kept in a history</li>
+        </ul>
+      </div>
+
+      <div class="dvis">
+        <div class="ui">
+          <div class="ui-h">Reimbursement policy</div>
+          <div class="prow head"><span>Category</span><span>Per claim</span><span>Monthly</span><span>Receipt above</span></div>
+          <div class="prow"><span>Travel</span><span>&#8377;10,000</span><span>&#8377;30,000</span><span>&#8377;500</span></div>
+          <div class="prow edited"><span>Food <i>edited</i></span><span>&#8377;2,500</span><span>&#8377;8,000</span><span>&#8377;300</span></div>
+          <div class="prow"><span>Accommodation</span><span>&#8377;15,000</span><span>&#8377;45,000</span><span>Always</span></div>
+          <div class="claim solo">
+            <div><b>Hotel stay, training</b><small>Akash &middot; 18 Oct</small></div>
+            <em>&#8377;17,200</em>
+            <span class="warn">&#9888; Over limit</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Currency and payments -->
+    <div class="dive reveal">
+      <div class="dtext">
+        <span class="eyebrow">Currencies and payments</span>
+        <h3>Claim in any currency. Pay with a record.</h3>
+        <p>
+          The live exchange rate is saved with each claim, so a later change in the market never
+          rewrites history. When the claim is paid, the method and the reference are recorded.
+        </p>
+        <ul class="ticks">
+          <li>9 currencies with a live rate preview in the form</li>
+          <li>All totals and charts use the INR amount</li>
+          <li>Payment method, reference number and date on every claim</li>
+        </ul>
+      </div>
+
+      <div class="dvis">
+        <div class="ui">
+          <div class="ui-h">Claim in any currency</div>
+          <div class="conv">
+            <div><small>You enter</small><strong>50.00 USD</strong></div>
+            <span class="arr">&rarr;</span>
+            <div><small>Saved in INR</small><strong>&#8377;4,181</strong></div>
+          </div>
+          <div class="note ok">Rate of 1 USD = &#8377;83.62 saved with the claim</div>
+          <div class="ui-h sm">Payment record</div>
+          <div class="field"><span>Method</span><b>UPI</b></div>
+          <div class="field"><span>Reference</span><b>UPI-2026-1001</b></div>
+          <div class="field"><span>Paid on</span><b>11 Oct 2026</b></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assistant -->
+    <div class="dive flip reveal">
+      <div class="dtext">
+        <span class="eyebrow">Expense assistant</span>
+        <h3>Answers from your own policy and claims</h3>
+        <p>
+          Ask about a limit, a receipt rule or the status of a claim. The assistant reads the real
+          policy and your own claims. It is rule-based, so it never makes things up, and no data
+          leaves the system.
+        </p>
+        <ul class="ticks">
+          <li>Policy limits, receipt rules and how the process works</li>
+          <li>Whether a planned claim is within the limits</li>
+          <li>The status and the next step of any of your claims</li>
+        </ul>
+      </div>
+
+      <div class="dvis">
+        <div class="ui chat">
+          <div class="ui-h">Expense assistant</div>
+          <div class="seq">
+            <div class="cb me m1">Can I claim 7500 for travel?</div>
+            <div class="m2wrap">
+              <div class="cb typing"><i></i><i></i><i></i></div>
+              <div class="cb answer">
+                Travel allows up to &#8377;10,000 per claim, so 7,500 is within the limit. This month you
+                have claimed &#8377;4,500, so the total would be &#8377;12,000, over the monthly limit of
+                &#8377;30,000? No, it is within it. A receipt is required above &#8377;500.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Numbers ================= -->
+<section class="band">
+  <div class="wrap nums">
+    @for (m of metrics; track m.label; let i = $index) {
+    <div class="num reveal" [style.--d]="i * 0.1 + 's'">
+      <strong [attr.data-count]="m.value" [attr.data-suffix]="m.suffix">0</strong>
+      <span>{{ m.label }}</span>
+    </div>
+    }
+  </div>
+</section>
+
+<!-- ================= How it works ================= -->
+<section class="sec soft" id="how">
+  <div class="wrap">
+    <div class="shead reveal">
+      <span class="eyebrow">How it works</span>
+      <h2>From receipt to reimbursement in four steps</h2>
+      <p>Keep scrolling and watch a claim move through the company.</p>
+    </div>
+
+    <ol class="steps">
+      @for (s of steps; track s.title; let i = $index) {
+      <li class="step reveal" [style.--d]="i * 0.1 + 's'">
+        <span class="stn">{{ i + 1 }}</span>
+        <h3>{{ s.title }}</h3>
+        <span class="who">{{ s.who }}</span>
+        <p>{{ s.text }}</p>
+      </li>
+      }
+    </ol>
+  </div>
+</section>
+
+<!-- ================= Security ================= -->
+<section class="sec dark" id="security">
+  <div class="wrap sgrid">
+    <div class="reveal">
+      <span class="eyebrow">Security</span>
+      <h2>Built so that nothing happens without a record</h2>
+      <p class="lede">
+        Money and personal data deserve care. Every request is checked on the server, and nobody sees
+        more than they should.
+      </p>
+      <ul class="ticks light">
+        @for (p of securityPoints; track p) {
+        <li>{{ p }}</li>
+        }
+      </ul>
+    </div>
+
+    <div class="reveal" style="--d: 0.12s">
+      <ol class="flow">
+        @for (n of flow; track n.title; let i = $index) {
+        <li>
+          <span class="fn">{{ i + 1 }}</span>
+          <div><strong>{{ n.title }}</strong><small>{{ n.text }}</small></div>
+        </li>
+        }
+        <span class="packet"></span>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Technology ================= -->
+<section class="sec">
+  <div class="wrap">
+    <div class="shead reveal">
+      <span class="eyebrow">Technology</span>
+      <h2>Modern, proven tools</h2>
+      <p>A familiar stack that is easy to run, easy to read and easy to extend.</p>
+    </div>
+
+    <div class="tgrid">
+      @for (t of tech; track t.name; let i = $index) {
+      <div class="tcard spot reveal" [style.--d]="(i % 3) * 0.08 + 's'">
+        <strong>{{ t.name }}</strong>
+        <span>{{ t.role }}</span>
+      </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ================= Team ================= -->
+<section class="sec soft" id="team">
+  <div class="wrap">
+    <div class="shead reveal">
+      <span class="eyebrow">Team SmartCoders</span>
+      <h2>Built by five people, one module each</h2>
+      <p>Every member owns a part of the system, from the database to the user interface.</p>
+    </div>
+
+    <div class="mgrid">
+      @for (m of team; track m.module; let i = $index) {
+      <article class="mcard spot reveal" [style.--d]="i * 0.08 + 's'">
+        <span class="mav">{{ m.name ? initials(m.name) : i + 1 }}</span>
+        <h3>{{ m.name || 'Team member' }}</h3>
+        <small class="mmod">{{ m.module }}</small>
+        <p>{{ m.work }}</p>
+      </article>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ================= FAQ ================= -->
+<section class="sec" id="faq">
+  <div class="wrap fgrid2">
+    <div class="reveal">
+      <span class="eyebrow">FAQ</span>
+      <h2>Questions, answered</h2>
+      <p class="lede">The things people ask first about how the system works.</p>
+    </div>
+
+    <div class="faqs reveal" style="--d: 0.1s">
+      @for (f of faqs; track f.q; let i = $index) {
+      <div class="faq" [class.open]="openFaq() === i">
+        <button class="faq-q" type="button" (click)="toggleFaq(i)" [attr.aria-expanded]="openFaq() === i">
+          <span>{{ f.q }}</span>
+          <i></i>
+        </button>
+        <div class="faq-a"><div><p>{{ f.a }}</p></div></div>
+      </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ================= Call to action ================= -->
+<section class="wrap ctawrap">
+  <div class="cta reveal">
+    <span class="cglow"></span>
+    <h2>See it in action</h2>
+    <p>Create an account and submit your first claim in under a minute.</p>
+    <div class="cta-row center">
+      @if (loggedIn) {
+      <a class="btn white" [routerLink]="homeLink">Open my dashboard <span class="ar">&rarr;</span></a>
+      } @else {
+      <a class="btn white" routerLink="/register">Create an account <span class="ar">&rarr;</span></a>
+      <a class="btn ghost" routerLink="/login">I already have one</a>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ================= Footer ================= -->
+<footer class="footer">
+  <div class="wrap fgrid3">
+    <div class="fbrand">
+      <a class="brand" href="#top" (click)="go('top', $event)">
+        <span class="mark">ER</span>
+        <span class="name">Expense<b>Hub</b></span>
+      </a>
+      <p>Expense reimbursement and approval for teams that want money matters to be clear.</p>
+    </div>
+
+    <div class="fcol">
+      <h4>Product</h4>
+      <a href="#product" (click)="go('product', $event)">Product tour</a>
+      <a href="#features" (click)="go('features', $event)">Features</a>
+      <a href="#how" (click)="go('how', $event)">How it works</a>
+      <a href="#security" (click)="go('security', $event)">Security</a>
+    </div>
+
+    <div class="fcol">
+      <h4>Project</h4>
+      <a href="#team" (click)="go('team', $event)">Team</a>
+      <a href="#faq" (click)="go('faq', $event)">FAQ</a>
+      <a [href]="githubUrl" target="_blank" rel="noopener">GitHub</a>
+    </div>
+
+    <div class="fcol">
+      <h4>Account</h4>
+      @if (loggedIn) {
+      <a [routerLink]="homeLink">Open dashboard</a>
+      } @else {
+      <a routerLink="/login">Log in</a>
+      <a routerLink="/register">Create an account</a>
+      }
+    </div>
+  </div>
+
+  <div class="wrap fbottom">
+    <span>&copy; {{ year }} SmartCoders. All rights reserved.</span>
+    <span>Built with Spring Boot, Angular and MySQL</span>
+  </div>
+</footer>

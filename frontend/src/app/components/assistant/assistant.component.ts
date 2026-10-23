@@ -51,7 +51,8 @@ export class AssistantComponent {
   private refresh() {
     const url = this.router.url;
     const loggedIn = !!localStorage.getItem('token');
-    const show = loggedIn && !url.startsWith('/login') && !url.startsWith('/register');
+    const onHome = url === '/' || url.startsWith('/?') || url.startsWith('/#');
+    const show = loggedIn && !onHome && !url.startsWith('/login') && !url.startsWith('/register');
 
     if (!show && this.visible()) {
       // Logged out: forget the conversation
