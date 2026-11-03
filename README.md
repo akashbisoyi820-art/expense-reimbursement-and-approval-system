@@ -41,6 +41,7 @@ A full-stack web application for managing office expense claims. Employees submi
 - Spending Overview charts (by category, status, month and, for managers and admins, by department), with date and status filters. Clicking a slice or bar opens the matching claims.
 - The claim details panel shows the payment record of a reimbursed claim
 - Rule-based expense assistant (chat) that answers from the real policy and the user's own claims, with no outside service
+- A public home page with a product tour, features, security overview, team and FAQ, in light and dark themes
 
 ## Workflow
 

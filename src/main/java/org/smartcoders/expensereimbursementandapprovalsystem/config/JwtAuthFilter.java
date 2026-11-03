@@ -39,6 +39,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 String email = jwtUtil.extractEmail(token);
 
                 userRepository.findByEmail(email).ifPresent(user -> {
+                    // A deactivated account stops working at once, even with an old token
+                    if (!user.isEnabled()) {
+                        return;
+                    }
+
                     UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                             user.getEmail(),
                             null,

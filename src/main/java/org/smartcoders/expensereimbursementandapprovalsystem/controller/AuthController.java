@@ -16,6 +16,14 @@ public class AuthController {
 
     private final AuthService authService;
 
+    public record AuthConfig(boolean registrationOpen) {}
+
+    // Lets the website know whether the register page should be offered
+    @GetMapping("/config")
+    public ResponseEntity<AuthConfig> config() {
+        return ResponseEntity.ok(new AuthConfig(authService.isRegistrationOpen()));
+    }
+
     @PostMapping("/register")
     public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authService.register(request));
